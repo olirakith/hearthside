@@ -5,6 +5,7 @@
 ## Notes-frFR: Votre carte, vos quêtes et votre voyage sur un second écran, le jeu garde le premier.
 ## Author: Olirakith
 ## X-Curse-Project-ID: 1802916
+## X-Wago-ID: 4N2bwZNL
 ## Version: 0.2.0-beta.1
 ## IconTexture: Interface\Icons\INV_Misc_Map_01
 ## AddonCompartmentFunc: Hearthside_OnAddonCompartmentClick
