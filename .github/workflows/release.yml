@@ -1,0 +1,37 @@
+# A tag such as v0.2.0-beta.1 builds the addon ZIP and publishes it on CurseForge, Wago and
+# GitHub Releases. A tag containing "beta" goes to the Beta channel. Without the CurseForge or
+# Wago secrets (or the IDs in the TOC), the packager skips that site.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      CF_API_KEY: ${{ secrets.CF_API_KEY }}
+      WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Package and publish
+        uses: BigWigsMods/packager@v2
+
+      - name: Announce on Discord
+        if: ${{ env.DISCORD_WEBHOOK != '' }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          url="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${tag}"
+          jq -n --arg content "**Hearthside ${tag}** is out. Update through the CurseForge or Wago app. Changes: ${url}" \
+            '{content: $content}' > payload.json
+          curl -fsS -H "Content-Type: application/json" -d @payload.json "$DISCORD_WEBHOOK"

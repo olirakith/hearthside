@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="HEARTHSIDE_TOGGLE_WINDOW" category="BINDING_HEADER_HEARTHSIDE">
+        Hearthside_ToggleWindow()
+    </Binding>
+</Bindings>
