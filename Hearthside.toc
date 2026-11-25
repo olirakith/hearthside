@@ -6,12 +6,12 @@
 ## Author: Olirakith
 ## X-Curse-Project-ID: 1802916
 ## X-Wago-ID: 4N2bwZNL
-## Version: 0.2.0-beta.1
+## Version: 0.2.0-beta.2
 ## IconTexture: Interface\Icons\INV_Misc_Map_01
 ## AddonCompartmentFunc: Hearthside_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: Hearthside_OnAddonCompartmentEnter
 ## AddonCompartmentFuncOnLeave: Hearthside_OnAddonCompartmentLeave
-## SavedVariables: MultiScreenForeverDB, MultiScreenForeverChroniclesDB, AzerothJourneyCommunityDB, AzerothJourneyActiveDB
+## SavedVariables: MultiScreenForeverDB, MultiScreenForeverChroniclesDB, AzerothJourneyCommunityDB, AzerothJourneyActiveDB, HearthsideInkDB
 
 Core/Namespace.lua
 Core/Edition.lua
@@ -44,6 +44,7 @@ Workspace/BroadcastMode.lua
 Workspace/JourneyChatTabs.lua
 Workspace/JourneyChatCopy.lua
 Workspace/JourneyChat.lua
+Workspace/JourneyMissed.lua
 Workspace/JourneyWho.lua
 Workspace/JourneyWhisperSound.lua
 Workspace/JourneyNativeChat.lua
@@ -56,6 +57,7 @@ Workspace/SessionFeed.lua
 Workspace/QuestJournal.lua
 Workspace/StatusBar.lua
 Workspace/JourneyMapData.lua
+Workspace/JourneyMapDistance.lua
 Workspace/JourneyQuestData.lua
 Workspace/JourneyExplorationLayer.lua
 Workspace/JourneyChapterArt.lua
@@ -71,13 +73,20 @@ Workspace/JourneyMapCanvas.lua
 Workspace/JourneyQuestieOffers.lua
 Workspace/JourneyQuestPoiNotice.lua
 Workspace/JourneyQuestieGuide.lua
+Workspace/JourneyMapServices.lua
+Workspace/JourneyMapEntrances.lua
+Workspace/JourneyMapExtras.lua
+Workspace/JourneyMapFilter.lua
 Workspace/JourneyInventoryData.lua
+Workspace/JourneyRoster.lua
+Workspace/JourneyMarker.lua
 Workspace/InventoryView.lua
 Workspace/Workspace.lua
 Workspace/JourneyWorkspace.lua
 Workspace/JourneyMentorBand.lua
 Workspace/JourneyGroupQuests.lua
 Workspace/JourneyContractBand.lua
+Workspace/JourneyHomeButton.lua
 Workspace/JourneyLiveView.lua
 Workspace/JourneyWindow.lua
 Workspace/JourneyLauncher.lua
@@ -158,3 +167,24 @@ Active/UI/ContractView.lua
 Active/UI/Reveal.lua
 Active/UI/Credits.lua
 Active/UI/PosterCode.lua
+Ink/Tale.lua
+Ink/Pack.lua
+Ink/Codec.lua
+Ink/Progress.lua
+Ink/Draft.lua
+Ink/Store.lua
+Ink/Ink.lua
+Ink/Watch.lua
+Ink/Deeds.lua
+Ink/Chart.lua
+Ink/Demo.lua
+Ink/Courier.lua
+Ink/Workshop.lua
+Ink/UI/Theme.lua
+Ink/UI/Tab.lua
+Ink/UI/Book.lua
+Ink/UI/Atelier.lua
+Ink/UI/Found.lua
+Ink/UI/Give.lua
+Ink/UI/MapLayer.lua
+Ink/UI/QuestSection.lua

@@ -286,30 +286,53 @@ function O:Player(unit)
         trivial = trivial }
 end
 
--- The quests the player can take on this map, one entry per quest (its first starter here).
+-- Where the player stands on this map, in the 0-1 frame of the pins; nil when not on it.
+function O:PlayerSpot(mapID)
+    local map = _G.C_Map
+    if not mapID or type(map) ~= "table" or type(map.GetPlayerMapPosition) ~= "function" then return nil end
+    local ok, spot = pcall(map.GetPlayerMapPosition, mapID, "player")
+    if not ok or type(spot) ~= "table" or type(spot.GetXY) ~= "function" then return nil end
+    return spot:GetXY()
+end
+
+-- Zone maps are three wide for two high: a gap in x weighs more than the same gap in y.
+local function Gap(entry, x, y)
+    local dx, dy = (entry.x - x) * 1.5, entry.y - y
+    return dx * dx + dy * dy
+end
+
+-- The quests the player can take on this map, one entry per quest. A quest given at several
+-- places (two givers, a giver with several spawns) keeps the place nearest to the player, or the
+-- first one when the player is not on this map; `places` says how many there are.
 function O:Collect(mapID, skip)
     local index = self:BuildIndex()
     local list = index and index[mapID]
     local found, rejected = {}, {}
     if not list then return found, rejected end
-    local player, seen = self:Player(), {}
+    local player, byQuest = self:Player(), {}
+    local px, py = self:PlayerSpot(mapID)
     for _, entry in ipairs(list) do
         local questID = entry.questID
+        local quest = byQuest[questID]
         if self.unknown[questID] then
             rejected.UNKNOWN_ON_SERVER = (rejected.UNKNOWN_ON_SERVER or 0) + 1
-        elseif not seen[questID] and not (skip and skip[questID]) then
-            seen[questID] = true
+        elseif quest then
+            quest.places = quest.places + 1
+            if px and Gap(entry, px, py) < Gap(quest.entry, px, py) then quest.entry = entry end
+        elseif quest == nil and not (skip and skip[questID]) then
             local ok, reason = self:Available(questID, player)
             if ok then
                 local Quest = self.lib.Quest
                 local questLevel = Quest.Get(questID, "questLevel") or 0
-                found[#found + 1] = { questID = questID, entry = entry, name = Quest.Get(questID, "name"),
+                quest = { questID = questID, entry = entry, places = 1, name = Quest.Get(questID, "name"),
                     level = questLevel, required = Quest.Get(questID, "requiredLevel") or 0,
                     trivial = questLevel > 0 and questLevel < player.level - player.trivial,
                     repeatable = HasBit(Quest.Get(questID, "specialFlags") or 0, 1) }
+                found[#found + 1] = quest
             else
                 rejected[reason] = (rejected[reason] or 0) + 1
             end
+            byQuest[questID] = quest or false
         end
     end
     return found, rejected
@@ -329,7 +352,7 @@ function O:AddOffers(offers, mapID)
             questClassification = Enum.QuestClassification.Normal, questIcon = "QuestNormal", pinLevel = 1,
             pinAlpha = 1, floorLocation = Enum.QuestLineFloorLocation.Same, isLocalStory = false,
             journeyQuestie = { npcID = entry.npcID, objectID = entry.objectID, level = quest.level,
-                required = quest.required },
+                required = quest.required, places = quest.places },
         }
         self:Preload(questID)
     end
@@ -341,6 +364,22 @@ function O:Preload(questID)
     self.requested = self.requested or {}
     self.requested[questID] = true
     pcall(C_QuestLog.RequestLoadQuestByID, questID)
+end
+
+-- True when QuestieDB records a walking path for this NPC: { [areaID] = { { {x, y}, ... }, ... } }.
+function O:Moves(npcID)
+    local lib = self.lib or self:Library()
+    if not lib or type(npcID) ~= "number" then return false end
+    local ok, waypoints = pcall(lib.Npc.Get, npcID, "waypoints")
+    if not ok or type(waypoints) ~= "table" then return false end
+    for _, paths in pairs(waypoints) do
+        if type(paths) == "table" then
+            for _, path in pairs(paths) do
+                if type(path) == "table" and next(path) ~= nil then return true end
+            end
+        end
+    end
+    return false
 end
 
 -- Our own tooltip: Blizzard's waits for quest data the client never loaded for these quests.
@@ -368,9 +407,60 @@ function O:ShowTooltip(pin)
         local object = self.lib and self.lib.Object and self.lib.Object.Get(info.objectID, "name")
         if object then GameTooltip:AddLine(string.format(MS.L.JOURNEY_QUESTIE_OFFER_OBJECT, object), 1, 1, 1) end
     end
+    if info.places and info.places > 1 then
+        GameTooltip:AddLine(string.format(MS.L.JOURNEY_QUESTIE_OFFER_PLACES, info.places), .8, .8, .8)
+    end
     if MS.JourneyQuestieGuide then MS.JourneyQuestieGuide:AddTooltipLines(GameTooltip, pin.questID) end
+    if info.npcID and self:Moves(info.npcID) then
+        GameTooltip:AddLine(MS.L.JOURNEY_QUESTIE_OFFER_MOVES, .6, .6, .6)
+    end
     GameTooltip:AddLine(MS.L.JOURNEY_QUESTIE_OFFER_SOURCE, .6, .6, .6)
     GameTooltip:Show()
+end
+
+-- Stand on a quest giver, target it and ask for the report: how far QuestieDB places it from
+-- where the player stands. The only way to tell a wrong coordinate from a giver that moves.
+function O:Measure(add, lib)
+    local guid = type(UnitGUID) == "function" and UnitGUID("target")
+    local npcID = type(guid) == "string" and tonumber(guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)"))
+    if not npcID then add("target=none (stand on a quest giver and target it to measure its place)"); return end
+    local map = _G.C_Map
+    local okMap, mapID = pcall(function() return map.GetBestMapForUnit("player") end)
+    mapID = okMap and mapID or nil
+    local x, y = self:PlayerSpot(mapID)
+    local okSpawns, spawns = pcall(lib.Npc.Get, npcID, "spawns")
+    local areaToUi = self.areaToUi or self:AreaToUiMap(lib)
+    if not x or not okSpawns or type(spawns) ~= "table" or not areaToUi then
+        add("target npc=%d map=%s position=%s spawns=%s", npcID, tostring(mapID), tostring(x ~= nil),
+            okSpawns and type(spawns) or "error")
+        return
+    end
+    local best, here, elsewhere = nil, 0, 0
+    for areaID, points in pairs(spawns) do
+        for _, point in ipairs(type(points) == "table" and points or {}) do
+            if areaToUi[areaID] == mapID and type(point[1]) == "number" and point[1] >= 0 then
+                here = here + 1
+                local dx, dy = point[1] / 100 - x, point[2] / 100 - y
+                if not best or dx * dx + dy * dy < best.gap then
+                    best = { gap = dx * dx + dy * dy, dx = dx, dy = dy, x = point[1], y = point[2] }
+                end
+            else
+                elsewhere = elsewhere + 1
+            end
+        end
+    end
+    if not best then
+        add("target npc=%d map=%d you=%.2f,%.2f questiedb=no place on this map (%d elsewhere)", npcID, mapID,
+            x * 100, y * 100, elsewhere)
+        return
+    end
+    local yards = "-"
+    local okSize, width, height = pcall(function() return map.GetMapWorldSize(mapID) end)
+    if okSize and type(width) == "number" and type(height) == "number" then
+        yards = string.format("%.0f", math.sqrt((best.dx * width) ^ 2 + (best.dy * height) ^ 2))
+    end
+    add("target npc=%d map=%d you=%.2f,%.2f questiedb=%.2f,%.2f gap=%.2f yards=%s places=%d elsewhere=%d", npcID, mapID,
+        x * 100, y * 100, best.x, best.y, math.sqrt(best.gap) * 100, yards, here, elsewhere)
 end
 
 function O:Report()
@@ -392,6 +482,7 @@ function O:Report()
     add("remembered for %s", tostring(self.store and self.store.version))
     add("events today=%s", #self.activeEvents > 0 and table.concat(self.activeEvents, ", ") or "-")
     for why, count in pairs(self.stats.rejected or {}) do add("rejected %s=%d", why, count) end
+    if lib then self:Measure(add, lib) end
     return table.concat(lines, "\n")
 end
 

@@ -269,6 +269,7 @@ end
 
 function S:MarkSeen(seal)
     if seal and seal.state == "OPENED" then seal.seen = true end
+    if MS.JourneyHomeButton then MS.JourneyHomeButton:Refresh() end
 end
 
 A:Register("Seals", S)

@@ -1587,7 +1587,23 @@ function Map:Navigate(mapID)
 	return self:SetMapID(mapID, "MANUAL_NAVIGATION")
 end
 
+-- The client hangs capitals straight under their continent; going up from one lands on the zone
+-- around it, as players expect. Maps this client lacks fall back to the native parent.
+local CITY_ZONE = {
+	[1453] = 1429, -- Stormwind -> Elwynn Forest
+	[1455] = 1426, -- Ironforge -> Dun Morogh
+	[1457] = 1438, -- Darnassus -> Teldrassil
+	[1454] = 1411, -- Orgrimmar -> Durotar
+	[1456] = 1412, -- Thunder Bluff -> Mulgore
+	[1458] = 1420, -- Undercity -> Tirisfal Glades
+	[1947] = 1943, -- The Exodar -> Azuremyst Isle
+	[1954] = 1941, -- Silvermoon City -> Eversong Woods
+}
+Map.CITY_ZONE = CITY_ZONE
+
 function Map:GoToParent()
+	local zone = CITY_ZONE[self.mapID]
+	if zone and self:Navigate(zone) then return true end
 	local info = Data:Info(self.mapID)
 	if info and type(info.parentMapID) == "number" and info.parentMapID > 0 then
 		return self:Navigate(info.parentMapID)

@@ -306,6 +306,12 @@ function Journal:Refresh()
     for index, hit in pairs(self.hitRows) do
         if index > #rows then hit.entry, hit.title = false, false; hit:Hide() end
     end
+    -- Tales written as quests (L'Encre des Royaumes) close the list, drawn by their own module.
+    -- Its failure never costs the quest list.
+    if MS.Ink and MS.Ink.QuestSection then
+        local ok, bottom = pcall(MS.Ink.QuestSection.Draw, MS.Ink.QuestSection, self.content, y)
+        if ok and type(bottom) == "number" then y = bottom end
+    end
     self.content:SetHeight(math.max(self.scroll:GetHeight(), y + 4))
     if #entries > 0 then
         local selectedEntry

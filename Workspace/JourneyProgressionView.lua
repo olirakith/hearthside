@@ -493,6 +493,10 @@ local function ChapterReading(chapter)
     if MS.Community and MS.Community.ChapterLines then
         for _, line in ipairs(MS.Community:ChapterLines(chapter.mapID)) do lines[#lines + 1] = line end
     end
+    -- L'Encre des Royaumes: tales finished in this region.
+    if MS.Ink and MS.Ink.ChapterLines then
+        for _, line in ipairs(MS.Ink:ChapterLines(chapter.mapID)) do lines[#lines + 1] = line end
+    end
     for index = 1, chapter.expanded and #chapter.quests or math.min(3, #chapter.quests) do
         lines[#lines + 1] = string.format(MS.L.JOURNEY_CHAPTER_QUEST,
             chapter.quests[index].fact.titleSnapshot or MS.L.JOURNEY_QUEST_DETAILS)

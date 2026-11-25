@@ -4,7 +4,7 @@ MS.JourneyWorkspace = { active = false, view = "MAP" }
 local Journey = MS.JourneyWorkspace
 -- Logical px kept empty under the footer (second-screen taskbar / physical edge).
 Journey.BOTTOM_SAFE_INSET = 28
-local VIEWS = { "MAP", "QUESTS", "PROGRESSION", "CHRONICLES", "INVENTORY", "SETTINGS" }
+local VIEWS = { "MAP", "QUESTS", "PROGRESSION", "CHRONICLES", "INK", "INVENTORY", "SETTINGS" }
 
 local function ChronicleUI(target, method, ...)
     return target and type(target[method]) == "function"
@@ -54,7 +54,7 @@ function Journey:Create()
         button.rule:SetHeight(2)
         MS.JourneyUIStyle:Color(button.rule, "borderActive")
         local label = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-        MS.JourneyUIStyle:Body(label, index > 4 and "SECONDARY" or "BODY", "textSecondary")
+        MS.JourneyUIStyle:Body(label, (view == "INVENTORY" or view == "SETTINGS") and "SECONDARY" or "BODY", "textSecondary")
         label:SetPoint("CENTER", button, "CENTER")
         label:SetText(MS.L["JOURNEY_VIEW_" .. view])
         button.label = label
@@ -93,6 +93,7 @@ function Journey:Create()
     self.tabSlider:SetHeight(2); MS.JourneyUIStyle:Color(self.tabSlider, "borderActive")
     self.tabSlider:Hide()
     self:CreateBroadcastBadge(parent)
+    if MS.JourneyHomeButton then MS.JourneyHomeButton:Create(parent) end
     self:CreateTabMenu(parent)
     MS.SessionFeed:Create(parent)
     MS.JourneySettings:CreateView(parent)
@@ -100,6 +101,7 @@ function Journey:Create()
     MS.QuestJournal:Create(parent)
     MS.MapView:Create(parent)
     MS.InventoryView:Create(parent)
+    if MS.Ink and MS.Ink.Tab then MS.Ink.Tab:Create(parent) end
     if not (MS.Config and MS.Config.chroniclesPaused) then
         self.chroniclesViewReady = ChronicleUI(MS.ChroniclesView, "Create", parent)
         self.chroniclesToastReady = ChronicleUI(MS.ChroniclesDiscoveryToast, "Create", parent)
@@ -135,6 +137,7 @@ function Journey:VisibleDestinations()
     local visible = {}
     for _, button in ipairs(self.tabs or {}) do
         if button.view ~= "SETTINGS" and button.available ~= false
+            and (button.view ~= "INK" or (MS.Ink and MS.Ink.Tab))
             and (button.view ~= "CHRONICLES" or (MS.JourneySettings:Get("showChronicles")
                 and not (MS.Config and MS.Config.chroniclesPaused))) then
             visible[#visible + 1] = button
@@ -168,7 +171,12 @@ function Journey:LayoutView(view)
     local destinations = self:VisibleDestinations()
     -- Tabs fit their word, so the row reads as a sentence and not as equal boxes.
     local badgeWidth = self:PlaceBroadcastBadge()
-    local available = math.max(1, self.header:GetWidth() - 160 - 104 - 32 - badgeWidth)
+    -- The brand is the button of the Hearthside home; the tabs start after it.
+    local home = MS.JourneyHomeButton
+    local tabStart = home and home:Place(self.header, MS.Workspace.frame:GetFrameLevel() + TAB_LEVEL) or 160
+    self.title:SetShown(not (home and home.button))
+    self.tabStart = tabStart
+    local available = math.max(1, self.header:GetWidth() - tabStart - 104 - 32 - badgeWidth)
     local gap, wanted, total = 8, {}, 0
     for index, button in ipairs(destinations) do
         local measured = button.label.GetStringWidth and button.label:GetStringWidth()
@@ -176,7 +184,7 @@ function Journey:LayoutView(view)
         total = total + wanted[index]
     end
     local gaps = math.max(0, #destinations - 1) * gap
-    local tabX = 160
+    local tabX = tabStart
     for _, button in ipairs(self.tabs) do button:Hide(); button.tabX = false end
     -- Too narrow for every word (a small second screen): one menu button instead of
     -- overlapping labels.
@@ -212,6 +220,7 @@ function Journey:LayoutView(view)
     MS.QuestJournal:Layout(content)
     MS.MapView:Layout(content)
     MS.InventoryView:Layout(content)
+    if MS.Ink and MS.Ink.Tab then MS.Ink.Tab:Layout(content) end
     if self.chroniclesViewReady then
         self.chroniclesViewReady = ChronicleUI(MS.ChroniclesView, "Layout", content)
     end
@@ -324,7 +333,7 @@ function Journey:PlaceTabMenu(folded, destinations, view)
     local measured = button.label.GetStringWidth and button.label:GetStringWidth()
     button:SetSize(math.max(96, (type(measured) == "number" and measured or 64) + 46), 28)
     button:ClearAllPoints()
-    button:SetPoint("BOTTOMLEFT", self.header, "BOTTOMLEFT", 160, 2)
+    button:SetPoint("BOTTOMLEFT", self.header, "BOTTOMLEFT", self.tabStart or 160, 2)
     button:SetFrameLevel(MS.Workspace.frame:GetFrameLevel() + TAB_LEVEL)
     button.rule:SetShown(current ~= nil)
 end
@@ -427,7 +436,8 @@ function Journey:AnimateChange(previous, view)
 end
 
 function Journey:SelectView(view)
-    if view ~= "QUESTS" and view ~= "MAP" and view ~= "INVENTORY" and view ~= "SETTINGS" and view ~= "PROGRESSION" and view ~= "CHRONICLES" then return nil end
+    if view ~= "QUESTS" and view ~= "MAP" and view ~= "INVENTORY" and view ~= "SETTINGS" and view ~= "PROGRESSION" and view ~= "CHRONICLES"
+        and not (view == "INK" and MS.Ink and MS.Ink.Tab) then return nil end
     if not self.active then return nil end
     if MS.JourneyContextMenu then MS.JourneyContextMenu:Close("VIEW") end
     -- A tab click leaves the live view for that tab.
@@ -442,6 +452,7 @@ function Journey:SelectView(view)
     if MS.JourneySettings.HideView then MS.JourneySettings:HideView() end
     if MS.JourneyProgressionView then MS.JourneyProgressionView:SetVisible(false) end
     if self.chroniclesViewReady then ChronicleUI(MS.ChroniclesView, "SetVisible", false) end
+    if MS.Ink and MS.Ink.Tab then MS.Ink.Tab:SetVisible(false) end
     self:LayoutView(view)
     if MS.JourneyProgressionView then MS.JourneyProgressionView:SetVisible(view == "PROGRESSION") end
     if self.chroniclesViewReady and not ChronicleUI(MS.ChroniclesView, "SetVisible", view == "CHRONICLES") then
@@ -450,6 +461,7 @@ function Journey:SelectView(view)
     end
     if view == "SETTINGS" then MS.JourneySettings:ShowView() end
     if view == "MAP" then MS.MapView:Show() end
+    if view == "INK" then MS.Ink.Tab:SetVisible(true) end
     if view == "QUESTS" and MS.JourneyContextPanel then MS.JourneyContextPanel:SetVisible(true) end
     local saved = MS.Database:Get().workspace
     saved.view = view
@@ -480,7 +492,8 @@ function Journey:Start()
         local view = saved.view or saved.lastMainView or "MAP"
         if view == "SETTINGS" then
             view = MS.Database:Get().workspace.lastMainView
-            if view ~= "MAP" and view ~= "QUESTS" and view ~= "INVENTORY" and view ~= "PROGRESSION" and view ~= "CHRONICLES" then view = "MAP" end
+            if view ~= "MAP" and view ~= "QUESTS" and view ~= "INVENTORY" and view ~= "PROGRESSION" and view ~= "CHRONICLES"
+                and view ~= "INK" then view = "MAP" end
         end
         -- The Discussion panel decides before the first layout of the views.
         if MS.JourneyChatView then MS.JourneyChatView:Sync() end
@@ -494,6 +507,7 @@ end
 
 function Journey:Stop()
     self.active = false
+    if MS.Ink and MS.Ink.Tab then pcall(MS.Ink.Tab.SetVisible, MS.Ink.Tab, false) end
     -- First: the game's chat comes back whatever happens next.
     if MS.JourneyChatView then pcall(MS.JourneyChatView.Stop, MS.JourneyChatView) end
     if MS.JourneyLiveView then pcall(MS.JourneyLiveView.Close, MS.JourneyLiveView) end

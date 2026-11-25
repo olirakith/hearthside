@@ -64,6 +64,11 @@ local function OnCanvasClick(map, button, x, y)
         local info = _G.C_Map.GetMapInfoAtPosition(map:GetMapID(), x, y)
         if not info or info.mapID == map:GetMapID() then MS.JourneyContextPanel:Clear() end
     end
+    -- Going up is Journey's (a capital goes up to its zone, not the continent); the native
+    -- canvas would take the client's parent. Ctrl+right click stays the marker's.
+    if button == "RightButton" and not (_G.IsControlKeyDown and _G.IsControlKeyDown()) then
+        return MS.MapView:GoToParent() and true or false
+    end
     return false
 end
 
@@ -130,6 +135,18 @@ function Canvas:Build(parent)
     _G.BattlefieldMapMixin.AddStandardDataProviders(frame)
     self:AddQuestLayer(frame)
     MS.JourneyTrace:Attach(frame)
+    if MS.Ink and MS.Ink.MapLayer then
+        local ok, err = pcall(MS.Ink.MapLayer.Attach, MS.Ink.MapLayer, frame)
+        if not ok then self:Note("ink layer error " .. tostring(err)) end
+    end
+    if MS.JourneyMapFilter then
+        local ok, err = pcall(MS.JourneyMapFilter.Build, MS.JourneyMapFilter, frame)
+        if not ok then self:Note("filter failed: " .. tostring(err)) end
+    end
+    if MS.JourneyMapExtras then
+        local ok, err = pcall(MS.JourneyMapExtras.Attach, MS.JourneyMapExtras, frame)
+        if not ok then self:Note("extras layer error " .. tostring(err)) end
+    end
     self:AddJourneyLink(frame)
     for _, script in ipairs({ "OnUpdate", "OnShow", "OnHide", "OnEvent" }) do
         frame:SetScript(script, frame[script])

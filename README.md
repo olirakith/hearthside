@@ -5,9 +5,11 @@ second monitor, while the game keeps the first one. *(Français plus bas.)*
 
 ## What it does
 
-- **Map**: your region's map next to the game, with quest markers and the road you travelled.
+- **Map**: your region's map next to the game, with quest markers, the services around you, dungeon and
+  raid entrances, and the road you travelled. A menu on the map picks the icons.
 - **Quests**: your quest log at a glance, quests ready to turn in first.
 - **Journey**: the milestones of your adventure.
+- **Ink of the Realms**: write tales hidden in Azeroth, and follow those of other players.
 - **Discussion**: the game's chat on the second screen, with your own tabs, copy and search.
 - **Community** (experimental, off by default): prepares a group question in your chat line. You send it yourself.
 
@@ -25,7 +27,9 @@ a minimap button opens the Hearthside window.
 
 ## Privacy
 
-- Everything stays on your computer: no telemetry, no account, no server.
+- No telemetry, no account, no server: your data stays on your computer.
+- A tale leaves it only when you share it: you paste its seal yourself, or offer it to one player you
+  name, through the game's own addon messages. They see your character's name and choose to accept or refuse.
 - The chat history is kept after a reload only if you turn it on, and only on your computer.
 - Community never sends anything for you.
 
@@ -53,5 +57,10 @@ garde le premier. Installez l'addon avec l'appli CurseForge ou Wago, et, pour de
 le Hearthside Companion (Windows) depuis sa
 [page de versions](https://github.com/olirakith/hearthside-companion/releases). Lancez le
 Companion avant WoW : il déplace la fenêtre de WoW et lit seulement un petit signal que l'addon
-affiche dans un coin du jeu ; il ne modifie pas le jeu et n'envoie aucune touche. Tout reste sur votre ordinateur : aucune télémétrie, aucun compte, aucun serveur.
+affiche dans un coin du jeu ; il ne modifie pas le jeu et n'envoie aucune touche. Aucune télémétrie, aucun compte, aucun serveur : vos données restent sur votre ordinateur.
+
+Avec **L'Encre des Royaumes**, écrivez des récits cachés dans Azeroth et suivez ceux des autres joueurs. Un récit
+ne quitte votre ordinateur que si vous le partagez : en collant vous-même son sceau, ou en l'offrant à un joueur
+que vous nommez, par les messages d'addon du jeu. Ce joueur voit le nom de votre personnage, et accepte ou refuse.
+
 Un bug, une question ? Le forum d'aide du [Discord](https://discord.gg/Jfd47U9wNX) est le meilleur endroit.

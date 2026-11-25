@@ -1,7 +1,7 @@
 local MS = _G.MS
 
--- Under the tabs: the running Contrat, or else the way in to Sur mes pas and Contrat, which
--- would otherwise take a slash command. When those are unavailable the band has no height.
+-- Under the tabs, while a Contrat runs: its goal and clock. The way in to the Hearthside home
+-- is the brand button left of the tabs (JourneyHomeButton); idle, the band has no height.
 MS.JourneyContractBand = {}
 local Band = MS.JourneyContractBand
 
@@ -19,7 +19,7 @@ local function Mode()
 end
 
 function Band:Height(view)
-    if view == "SETTINGS" or not Mode() then return 0 end
+    if view == "SETTINGS" or Mode() ~= "RUNNING" then return 0 end
     return HEIGHT
 end
 
@@ -112,6 +112,7 @@ end
 
 -- Every second while a Contrat runs, and when one starts or ends.
 function Band:Refresh()
+    if MS.JourneyHomeButton then MS.JourneyHomeButton:Refresh() end
     if not self.frame then return end
     local contract = Current()
     if contract then self.frame.text:SetText(self:Text(contract)) end

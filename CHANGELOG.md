@@ -1,5 +1,63 @@
 # Hearthside
 
+## 0.2.0-beta.2
+
+*(Français plus bas.)*
+
+### Ink of the Realms (new)
+Write tales hidden in Azeroth, and follow those of other players, from a new **Ink** tab.
+- Three kinds of tale: **hidden notes** to search for, a **treasure hunt**, or a **quest** with its objectives on the map.
+- A page opens when you reach its place, carry its item, answer its riddle, talk to a character, do an emote or slay creatures. The author can also ask for a level or an hour of the day.
+- Write in the workshop, try your tale yourself, then seal it: the seal is a short text to paste on Discord, a forum or in a whisper.
+- **Share in the game**: offer a tale to a player who is online and has this version. They accept or refuse. *This part is new and has not been tried widely yet: if it fails, copy the seal instead, and tell me on Discord.*
+- Your tales show on the map, in the Quests tab and in Journey.
+
+### Map
+- **Icons menu**, top right of the map: tick what you want to see.
+- The game's own icons: dungeons, raids, repairs, flight master, innkeeper, your class trainer, bank, auction house and mailboxes (they need the optional QuestieDB addon).
+- City mailboxes: neighbours share a pin, and more of them appear as you zoom in.
+- Your own marker: Ctrl+right-click places it, Ctrl+right-click on it removes it.
+- Zone levels, your coordinates, the cursor's, and the distance between them.
+- A quest offered at several places shows the one nearest to you.
+
+### Also
+- The HEARTHSIDE name at the top opens its home, with the tales, In My Footsteps and the Contract.
+- Texts and layouts that were cut on small or narrow screens.
+
+### Good to know
+- Works with the current Hearthside Companion (0.2.0 Beta): nothing to update there.
+- Close the game, update the addon, then start the game again: this version adds files.
+
+---
+
+## 0.2.0-beta.2 (français)
+
+### L'Encre des Royaumes (nouveau)
+Écrivez des récits cachés dans Azeroth, et suivez ceux des autres joueurs, depuis un nouvel onglet **L'Encre**.
+- Trois sortes de récits : des **notes cachées** à chercher, une **chasse au trésor**, ou une **quête** avec ses objectifs sur la carte.
+- Une page s'ouvre quand vous atteignez son lieu, portez son objet, résolvez son énigme, parlez à un personnage, faites un geste ou tuez des créatures. L'auteur peut aussi demander un niveau ou une heure de la journée.
+- Écrivez dans l'atelier, essayez votre récit, puis scellez-le : le sceau est un court texte à coller sur Discord, un forum ou dans un chuchotement.
+- **Partager en jeu** : offrez un récit à un joueur connecté qui a cette version. Il accepte ou refuse. *Cette partie est toute neuve et encore peu essayée : si elle échoue, copiez le sceau, et dites-le-moi sur Discord.*
+- Vos récits apparaissent sur la carte, dans l'onglet Quêtes et dans Parcours.
+
+### Carte
+- **Menu Icônes**, en haut à droite de la carte : cochez ce que vous voulez voir.
+- Les icônes du jeu : donjons, raids, réparations, maître de vol, aubergiste, maître de votre classe, banque, hôtel des ventes et boîtes aux lettres (elles demandent l'addon facultatif QuestieDB).
+- Boîtes aux lettres des villes : les voisines partagent un repère, et il en apparaît d'autres quand vous zoomez.
+- Votre propre repère : Ctrl+clic droit le pose, Ctrl+clic droit dessus l'enlève.
+- Niveaux de la zone, vos coordonnées, celles du curseur et la distance entre les deux.
+- Une quête proposée à plusieurs endroits montre le plus proche de vous.
+
+### Aussi
+- Le nom HEARTHSIDE, en haut, ouvre son accueil, avec les récits, Sur mes pas et le Contrat.
+- Des textes et des mises en page coupés sur les écrans petits ou étroits.
+
+### À savoir
+- Fonctionne avec le Hearthside Companion actuel (0.2.0 Beta) : rien à mettre à jour de ce côté.
+- Fermez le jeu, mettez l'addon à jour, puis relancez le jeu : cette version ajoute des fichiers.
+
+---
+
 ## 0.2.0-beta.1
 
 First public beta. *(Français plus bas.)*

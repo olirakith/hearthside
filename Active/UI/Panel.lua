@@ -33,7 +33,11 @@ function Panel:Create()
     frame.title = Kit.Label(frame, "HEADING", "gold")
     frame.title:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -18)
     frame.title:SetWidth(self.width - 120)
-    frame.back = Kit.Button(frame, 92, 22, function() Panel:Show("HOME") end)
+    -- A view may say where back leads (a tale goes back to the shelf); otherwise home.
+    frame.back = Kit.Button(frame, 92, 22, function()
+        local view = Panel.current and Panel.views[Panel.current]
+        Panel:Show(view and view.back or "HOME")
+    end)
     frame.back:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -44, -14)
     frame.back:SetLabel(MS.L.ACTIVE_BACK)
     frame.close = CreateFrame("Button", nil, frame)
@@ -118,6 +122,13 @@ function Panel:Show(name)
     self.current = name
     self.frame.title:SetText(view.Title and view:Title() or "")
     self.frame.back:SetShown(name ~= "HOME")
+    -- The title stops 10 px before whatever sits to its right: back button (left edge at
+    -- width-136) when shown, otherwise the previous width.
+    local titleWidth = name ~= "HOME" and (self.width - 166) or (self.width - 120)
+    self.frame.title:SetWidth(titleWidth)
+    if type(self.frame.title.SetMaxLines) == "function" then self.frame.title:SetMaxLines(1) end
+    self.frame.titleWidth = titleWidth
+    self.frame.backShown = name ~= "HOME"
     view.container:Show()
     Kit.FadeIn(view.container, .15)
     if view.Refresh then view:Refresh() end
@@ -125,6 +136,7 @@ end
 
 -- Something a view shows has changed (a seal, a rule): refresh if it is on screen.
 function Panel:Changed(what)
+    if MS.JourneyHomeButton then MS.JourneyHomeButton:Refresh() end
     if not self:IsShown() or not self.current then return end
     local view = self.views[self.current]
     if view and view.Refresh and (not view.topic or view.topic == what or self.current == "HOME") then view:Refresh() end
@@ -155,6 +167,7 @@ function Panel:OnHidden()
     local view = self.current and self.views[self.current]
     local reason = self.closing or "ESCAPE"
     if view and view.Closed then pcall(view.Closed, view, reason) end
+    if MS.JourneyHomeButton then MS.JourneyHomeButton:Refresh() end -- a sheet or seal just read
     self.closing, self.suspended = nil, false
     if self.token then
         local token = self.token
@@ -194,39 +207,115 @@ local Home = { topic = "HOME" }
 
 function Home:Title() return MS.L.ACTIVE_TITLE end
 
-local function Entry(parent, width, onClick)
-    local button = Kit.Button(parent, width, 92, onClick)
-    button.label:Hide()
-    button.title = Kit.Label(button, "ITEM_TITLE", "gold")
-    button.title:SetPoint("TOPLEFT", button, "TOPLEFT", 14, -12)
-    button.body = Kit.Label(button, "BODY", "textSecondary")
-    button.body:SetPoint("TOPLEFT", button, "TOPLEFT", 14, -36)
-    button.body:SetWidth(width - 28)
-    button.status = Kit.Label(button, "SECONDARY", "textPrimary")
-    button.status:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 14, 10)
-    button.status:SetWidth(width - 120)
-    -- The whole card opens its view; this says so.
-    button.open = Kit.Label(button, "SECONDARY", "gold", "RIGHT")
-    button.open:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -14, 10)
+-- A home card: an illustrated tile, the experience's name, its promise, where it stands and the
+-- one thing it opens. Drawn with L'Encre's theme (fonts, parchment colours) when it is loaded.
+Home.art = {
+    SEAL = { { .17, .29, .37, 1 }, { .10, .15, .21, 1 }, "Interface\\Icons\\INV_Misc_Spyglass_02" },
+    CONTRACT = { { .31, .19, .17, 1 }, { .16, .11, .11, 1 }, "Interface\\Icons\\INV_Scroll_05" },
+    INK = { { .27, .23, .15, 1 }, { .13, .11, .08, 1 }, "Interface\\Icons\\INV_Misc_Book_09" },
+}
+
+local function Entry(parent, width, onClick, kind)
+    local T = MS.Ink and MS.Ink.Theme
+    if not T then
+        local button = Kit.Button(parent, width, 92, onClick)
+        button.label:Hide()
+        button.title = Kit.Label(button, "ITEM_TITLE", "gold")
+        button.title:SetPoint("TOPLEFT", button, "TOPLEFT", 14, -12)
+        button.body = Kit.Label(button, "BODY", "textSecondary")
+        button.body:SetPoint("TOPLEFT", button, "TOPLEFT", 14, -36)
+        button.body:SetWidth(width - 28)
+        button.status = Kit.Label(button, "SECONDARY", "textPrimary")
+        button.status:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", 14, 10)
+        button.status:SetWidth(width - 120)
+        button.open = Kit.Label(button, "SECONDARY", "gold", "RIGHT")
+        button.open:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -14, 10)
+        button.open:SetText(MS.L.ACTIVE_HOME_OPEN)
+        return button
+    end
+    local art, height = Home.art[kind], 112
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(width, height)
+    button.edge = T.Fill(button, "lineSoft", "BACKGROUND")
+    button.back = button:CreateTexture(nil, "BORDER")
+    button.back:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+    button.back:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -1, 1)
+    T.Color(button.back, "raised")
+    -- The tile: a dusk gradient behind the experience's emblem.
+    button.tile = button:CreateTexture(nil, "ARTWORK")
+    button.tile:SetPoint("TOPLEFT", button, "TOPLEFT", 1, -1)
+    button.tile:SetSize(height - 2, height - 2)
+    button.tile:SetColorTexture(1, 1, 1, 1)
+    local top, bottom = art[1], art[2]
+    local shaded = type(_G.CreateColor) == "function" and pcall(button.tile.SetGradient, button.tile, "VERTICAL",
+        _G.CreateColor(bottom[1], bottom[2], bottom[3], 1), _G.CreateColor(top[1], top[2], top[3], 1))
+    if not shaded then T.Color(button.tile, top) end
+    button.emblem = T.Icon(button, 54, art[3])
+    button.emblem:SetPoint("CENTER", button.tile, "CENTER")
+    button.frameEdge = button:CreateTexture(nil, "OVERLAY")
+    button.frameEdge:SetPoint("TOPLEFT", button.tile, "TOPRIGHT")
+    button.frameEdge:SetPoint("BOTTOMLEFT", button.tile, "BOTTOMRIGHT")
+    button.frameEdge:SetWidth(1)
+    T.Color(button.frameEdge, "lineSoft")
+    local x, inner = height + 14, width - height - 28
+    button.title = T.Text(button, "TITLE", 15, "goldBright")
+    button.title:SetPoint("TOPLEFT", button, "TOPLEFT", x, -12)
+    button.title:SetWidth(inner)
+    button.body = T.Text(button, "UI", 14, "textSoft")
+    button.body:SetPoint("TOPLEFT", button, "TOPLEFT", x, -34)
+    button.body:SetWidth(inner)
+    if type(button.body.SetMaxLines) == "function" then button.body:SetMaxLines(2) end
+    button.status = T.Text(button, "UI_BOLD", 13, "text")
+    button.status:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", x, 12)
+    button.status:SetWidth(inner - 90)
+    if type(button.status.SetWordWrap) == "function" then button.status:SetWordWrap(false) end
+    button.pips = T.Pips(button)
+    button.pips:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", x, 32)
+    button.pips:Hide()
+    button.open = T.Text(button, "UI_BOLD", 13, "gold", "RIGHT")
+    button.open:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -14, 12)
     button.open:SetText(MS.L.ACTIVE_HOME_OPEN)
+    button.hovered, button.featured = false, false
+    local function Paint(self)
+        T.Color(self.back, self.hovered and "selected" or "raised")
+        T.Color(self.edge, (self.hovered or self.featured) and "gold" or "lineSoft")
+        T.TextColor(self.open, self.hovered and "goldBright" or "gold")
+    end
+    button:SetScript("OnEnter", function(self) self.hovered = true; Paint(self) end)
+    button:SetScript("OnLeave", function(self) self.hovered = false; Paint(self) end)
+    button:SetScript("OnHide", function(self) self.hovered = false; Paint(self) end)
+    button:SetScript("OnClick", function(self) if onClick then onClick(self) end end)
+    -- Something is under way: a gold edge says this is where the player left off.
+    function button:SetFeatured(value) self.featured = value == true; Paint(self) end
+    Paint(button)
     return button
 end
 
 function Home:Build(container, width)
+    local themed = MS.Ink and MS.Ink.Theme
+    local step = themed and 122 or 108
     self.intro = Kit.Label(container, "BODY", "textSecondary")
     self.intro:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -4)
     self.intro:SetWidth(width)
     self.intro:SetText(MS.L.ACTIVE_HOME_INTRO)
-    self.seal = Entry(container, width, function() Panel:Show("SEAL") end)
-    self.seal:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -48)
+    self.seal = Entry(container, width, function() Panel:Show("SEAL") end, "SEAL")
+    self.seal:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -40)
     self.seal.title:SetText(MS.L.SEAL_NAME)
     self.seal.body:SetText(MS.L.SEAL_PROMISE)
-    self.contract = Entry(container, width, function() Panel:Show("CONTRACT") end)
-    self.contract:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -156)
+    self.contract = Entry(container, width, function() Panel:Show("CONTRACT") end, "CONTRACT")
+    self.contract:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -40 - step)
     self.contract.title:SetText(MS.L.CONTRACT_NAME)
     self.contract.body:SetText(MS.L.CONTRACT_PROMISE)
+    if MS.Ink and MS.Ink.Tab then
+        self.ink = Entry(container, width, function()
+            if MS.Ink:OpenTab("SHELF") then Panel:Close("PLAYER") else A:Say("INK_NO_JOURNEY") end
+        end, "INK")
+        self.ink:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -40 - step * 2)
+        self.ink.title:SetText(MS.L.INK_NAME)
+        self.ink.body:SetText(MS.L.INK_PROMISE)
+    end
     self.hint = Kit.Label(container, "SECONDARY", "muted")
-    self.hint:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 0, 4)
+    self.hint:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 0, 0)
     self.hint:SetWidth(width)
     self.hint:SetText(MS.L.ACTIVE_HOME_HINT)
 end
@@ -234,6 +323,7 @@ end
 function Home:Refresh()
     local waiting = #A.Seals:Armed()
     self.seal.status:SetText(waiting > 0 and string.format(MS.L.SEAL_WAITING_COUNT, waiting) or MS.L.SEAL_NONE_WAITING)
+    if self.seal.SetFeatured then self.seal:SetFeatured(waiting > 0) end
     local contract, T = A.Contracts:Current(), A.ContractText
     if contract then
         self.contract.status:SetText(string.format(MS.L.CONTRACT_RUNNING_STATUS, T:ContractTitle(contract.goal),
@@ -242,6 +332,20 @@ function Home:Refresh()
         local last = A.Contracts:History()[1]
         self.contract.status:SetText(last and string.format(MS.L.CONTRACT_LAST_STATUS, (T:Verdict(last.verdict)), T:ContractTitle(last.context))
             or MS.L.CONTRACT_NONE)
+    end
+    if self.contract.SetFeatured then self.contract:SetFeatured(contract ~= nil) end
+    if self.ink then
+        local following = MS.Ink:Following()
+        self.ink.status:SetText(#following > 0 and string.format(MS.L.INK_FOLLOWING_COUNT, #following) or MS.L.INK_NONE_FOLLOWING)
+        if self.ink.SetFeatured then
+            self.ink:SetFeatured(#following > 0)
+            -- The first tale followed: its pages as short bars above the status.
+            local first = following[1]
+            self.ink.pips:SetShown(first ~= nil)
+            if first then
+                self.ink.pips:Set(MS.Ink.Progress.Count(first.tale, first.progress), #first.tale.pages, true, 150)
+            end
+        end
     end
 end
 

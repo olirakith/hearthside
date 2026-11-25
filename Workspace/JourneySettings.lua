@@ -3,6 +3,9 @@ local MS = _G.MS
 MS.JourneySettings = {
     -- Alpha text presets; the legacy journal width remains stored unchanged.
     defaults = { textScale = 1.1, sessionJournalWidth = 220, showQuestProgressBars = true, followPlayerOnStart = true, showChronicles = true, mapKeyOpensJourney = false, showTravelTrace = true, showQuestieOffers = true,
+        -- Map comfort (JourneyMapExtras): one switch per kind of icon, set from the map (JourneyMapFilter).
+        mapIconDUNGEON = true, mapIconRAID = true, mapIconREPAIR = true, mapIconFLIGHT = true, mapIconINN = true,
+        mapIconTRAINER = true, mapIconBANK = true, mapIconAUCTION = true, mapIconMAILBOX = true,
         -- One-screen window: the minimap button, and the fade while the character moves.
         showMinimapButton = true, minimapAngle = 210, fadeWhenMoving = true, movingOpacity = .4,
         -- Streamer mode (BroadcastMode): never reset with the others, a stream may be live.
@@ -27,6 +30,11 @@ MS.JourneySettings = {
 local Settings = MS.JourneySettings
 -- Toggles owned by other modules (e.g. Community experimental): { id, label, hint, get, set }.
 Settings.external = Settings.external or {}
+
+Settings.oldMapSwitches = {
+    showMapEntrances = { "DUNGEON", "RAID" },
+    showMapServices = { "REPAIR", "FLIGHT", "INN", "TRAINER", "BANK", "AUCTION", "MAILBOX" },
+}
 
 function Settings:AddExternalToggle(spec)
     if type(spec) ~= "table" or type(spec.get) ~= "function" or type(spec.set) ~= "function" then return end
@@ -58,6 +66,14 @@ end
 function Settings:Initialize(db)
     db.journey = type(db.journey) == "table" and db.journey or {}
     local saved = type(db.journey.settings) == "table" and db.journey.settings or {}
+    -- Until 2026-11 one switch covered all services and one all entrances.
+    for old, kinds in pairs(self.oldMapSwitches) do
+        if saved[old] == false then
+            for _, kind in ipairs(kinds) do
+                if saved["mapIcon" .. kind] == nil then saved["mapIcon" .. kind] = false end
+            end
+        end
+    end
     local values = {}
     for key in pairs(self.defaults) do values[key] = self:Validate(key, saved[key]) end
     db.journey.settings, self.values = values, values
@@ -95,6 +111,8 @@ end
 
 function Settings:Reset()
     for _, key in ipairs({ "textScale", "sessionJournalWidth", "showQuestProgressBars", "followPlayerOnStart", "showChronicles", "mapKeyOpensJourney", "showTravelTrace", "showQuestieOffers",
+        "mapIconDUNGEON", "mapIconRAID", "mapIconREPAIR", "mapIconFLIGHT", "mapIconINN",
+        "mapIconTRAINER", "mapIconBANK", "mapIconAUCTION", "mapIconMAILBOX",
         "showMinimapButton", "fadeWhenMoving", "movingOpacity" }) do
         self:Set(key, self.defaults[key])
     end
