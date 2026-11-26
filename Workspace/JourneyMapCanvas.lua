@@ -201,6 +201,7 @@ function Canvas:Sync(mapID)
     end
     if not useCanvas and self.frame then self.frame:Hide() end
     if MS.JourneyQuestPoiNotice then MS.JourneyQuestPoiNotice:Update() end
+    if MS.JourneyFellows then pcall(MS.JourneyFellows.Offer, MS.JourneyFellows, self.frame) end
     if useCanvas or plan then view.canvas:Hide() else view.canvas:Show() end
     view.status.mapRenderer = plan and "DUNGEON_PLAN" or useCanvas and "BLIZZARD_CANVAS" or "JOURNEY_FALLBACK"
 end

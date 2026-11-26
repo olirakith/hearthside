@@ -1,5 +1,41 @@
 # Hearthside
 
+## 0.3.0-beta.2
+
+*(Français plus bas.)*
+
+### Guild and friends on the map (new)
+- Everyone online in your guild and on your friends list (Battle.net friends playing Forever too) shows by zone: a badge with how many are there on a continent map, in a corner of the zone's own map. Hover it for names and levels. Nobody needs to install anything for this.
+- Players who share where they are show as a dot in their class colour, where they stand: name, level, class and distance on hover.
+- Hearthside speaks the same open format as OpenMap and also listens to OneForAll: players of those addons and of Hearthside see each other.
+- The first time you open the map, Hearthside asks once whether to share your place. Only your place is sent, never from a dungeon, raid or battleground. Change it any time in **Settings → Map**.
+- Your group stays drawn by the game, as before. Streamer mode shows nobody.
+- The map's menu has a new line, "Guild and friends", to hide them.
+
+### Good to know
+- Close the game, update the addon, then start the game again: this version adds a file.
+- If Hearthside opens on the game screen instead of the second screen after the update, type /reload once.
+- Something breaks? Tell me on Discord, with a screenshot.
+
+---
+
+## 0.3.0-beta.2 (français)
+
+### La guilde et les amis sur la carte (nouveau)
+- Tous les membres connectés de votre guilde et de votre liste d'amis (y compris les amis Battle.net qui jouent à Forever) apparaissent par zone : un badge avec leur nombre sur la carte d'un continent, dans un coin de la carte de leur zone. Survolez-le pour les noms et les niveaux. Personne n'a rien à installer pour ça.
+- Ceux qui partagent leur position apparaissent en point aux couleurs de leur classe, là où ils se trouvent : nom, niveau, classe et distance au survol.
+- Hearthside parle le même format ouvert qu'OpenMap et écoute aussi OneForAll : les joueurs de ces addons et ceux de Hearthside se voient entre eux.
+- La première fois que vous ouvrez la carte, Hearthside vous demande une seule fois si vous voulez partager votre position. Seule votre position part, jamais depuis un donjon, un raid ou un champ de bataille. Modifiable à tout moment dans **Paramètres → Carte**.
+- Votre groupe reste affiché par le jeu, comme avant. Le mode diffusion n'affiche personne.
+- Le menu de la carte a une nouvelle ligne, « Guilde et amis », pour les masquer.
+
+### À savoir
+- Fermez le jeu, mettez l'addon à jour, puis relancez le jeu : cette version ajoute un fichier.
+- Si Hearthside s'ouvre sur l'écran du jeu au lieu du second écran après la mise à jour, tapez /reload une fois.
+- Un souci ? Dites-le-moi sur Discord, avec une capture.
+
+---
+
 ## 0.3.0-beta.1
 
 *(Français plus bas.)*

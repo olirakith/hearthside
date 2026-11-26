@@ -6,6 +6,9 @@ MS.JourneySettings = {
         -- Map comfort (JourneyMapExtras): one switch per kind of icon, set from the map (JourneyMapFilter).
         mapIconDUNGEON = true, mapIconRAID = true, mapIconREPAIR = true, mapIconFLIGHT = true, mapIconINN = true,
         mapIconTRAINER = true, mapIconBANK = true, mapIconAUCTION = true, mapIconMAILBOX = true,
+        -- Guild and friends on the map (JourneyFellows): seen by zone; one's own place shared only when asked.
+        -- mapShareAsked: the map asked once whether to share (JourneyFellows:Offer).
+        mapIconFELLOW = true, mapShareWhere = false, mapShareAsked = false,
         -- One-screen window: the minimap button, and the fade while the character moves.
         showMinimapButton = true, minimapAngle = 210, fadeWhenMoving = true, movingOpacity = .4,
         -- Streamer mode (BroadcastMode): never reset with the others, a stream may be live.
@@ -114,7 +117,7 @@ end
 function Settings:Reset()
     for _, key in ipairs({ "textScale", "sessionJournalWidth", "showQuestProgressBars", "followPlayerOnStart", "showChronicles", "mapKeyOpensJourney", "showTravelTrace", "showQuestieOffers",
         "mapIconDUNGEON", "mapIconRAID", "mapIconREPAIR", "mapIconFLIGHT", "mapIconINN",
-        "mapIconTRAINER", "mapIconBANK", "mapIconAUCTION", "mapIconMAILBOX",
+        "mapIconTRAINER", "mapIconBANK", "mapIconAUCTION", "mapIconMAILBOX", "mapIconFELLOW", "mapShareWhere",
         "showMinimapButton", "fadeWhenMoving", "movingOpacity" }) do
         self:Set(key, self.defaults[key])
     end
@@ -347,6 +350,7 @@ function Settings:CreateView(parent)
     self.controls.contractLive = Toggle(self.page, "contractLive", MS.L.JOURNEY_SETTINGS_CONTRACT_LIVE_HINT)
     self.controls.followPlayerOnStart = Toggle(self.page, "followPlayerOnStart", MS.L.JOURNEY_SETTINGS_FOLLOW_HINT)
     self.controls.showTravelTrace = Toggle(self.page, "showTravelTrace", MS.L.JOURNEY_SETTINGS_TRACE_HINT)
+    self.controls.mapShareWhere = Toggle(self.page, "mapShareWhere", MS.L.JOURNEY_SETTINGS_SHARE_HINT)
     self.controls.showQuestProgressBars = Toggle(self.page, "showQuestProgressBars", MS.L.JOURNEY_SETTINGS_PROGRESS_HINT)
     self.headings.features = Label(self.page, "SECTION", "gold", MS.L.JOURNEY_SETTINGS_FEATURES)
     self.controls.showChronicles = Toggle(self.page, "showChronicles", MS.L.JOURNEY_SETTINGS_CHRONICLES_HINT)
@@ -518,7 +522,8 @@ function Settings:LayoutView(rect)
     rightY = rightY + 25
     rightY = rightY + place(self.headings.map, rightX, rightY, columnWidth) + 10
     rightY = rightY + toggle(self.controls.followPlayerOnStart, rightX, rightY) + 20
-    rightY = rightY + toggle(self.controls.showTravelTrace, rightX, rightY) + 24
+    rightY = rightY + toggle(self.controls.showTravelTrace, rightX, rightY) + 20
+    rightY = rightY + toggle(self.controls.mapShareWhere, rightX, rightY) + 24
     rightY = rightY + place(self.headings.quests, rightX, rightY, columnWidth) + 10
     rightY = rightY + toggle(self.controls.showQuestProgressBars, rightX, rightY) + 20
     rightY = rightY + place(self.headings.features, rightX, rightY, columnWidth) + 10
@@ -666,7 +671,7 @@ function Settings:RefreshView()
         StyleControl(button)
     end
     self.clearHistory:SetAlpha(self:Get("chatKeepHistory") == true and 1 or .55)
-    for _, key in ipairs({ "followPlayerOnStart", "showTravelTrace", "showQuestProgressBars", "showChronicles",
+    for _, key in ipairs({ "followPlayerOnStart", "showTravelTrace", "mapShareWhere", "showQuestProgressBars", "showChronicles",
         "showMinimapButton", "fadeWhenMoving", "broadcastMode", "contractLive", "chatInJourney", "chatShowTime",
         "chatKeepHistory" }) do
         local button = self.controls[key]

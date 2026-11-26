@@ -22,7 +22,11 @@ Extras.icons = {
     AUCTION = { file = TRACKING .. "Auctioneer", fallback = GOSSIP .. "VendorGossipIcon" },
     MAILBOX = { file = TRACKING .. "Mailbox", fallback = "Interface\\Icons\\INV_Letter_15", size = 16, fallbackSize = 16 },
     MARKER = { atlas = "Waypoint-MapPin-Tracked", fallback = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_1", size = 28, fallbackSize = 22 },
+    -- Guild and friends (JourneyFellows): a dot tinted to the class, a badge for a zone's people.
+    FELLOW = { atlas = "WhiteCircle-RaidBlips", file = "Interface\\WorldMap\\WorldMapPartyIcon", fallback = "Interface\\WorldMap\\WorldMapPartyIcon", size = 13, fallbackSize = 16 },
+    FELLOWS = { atlas = "socialqueuing-icon-group", fallback = "Interface\\FriendsFrame\\UI-Toast-FriendOnlineIcon", size = 22, fallbackSize = 20 },
 }
+local WHITE = { 1, 1, 1 }
 local SERVICE_ORDER = { "REPAIR", "FLIGHT", "INN", "TRAINER", "BANK", "AUCTION" }
 local TICK = .1
 
@@ -215,6 +219,13 @@ function Extras:Marks(mapID, px, py, height)
             end
         end
     end
+    if MS.JourneyFellows then
+        local ok, list = pcall(MS.JourneyFellows.Marks, MS.JourneyFellows, mapID)
+        for _, mark in ipairs(ok and type(list) == "table" and list or {}) do
+            mark.look = mark.kind
+            marks[#marks + 1] = mark
+        end
+    end
     local marker = MS.JourneyMarker and MS.JourneyMarker:Get()
     if marker and marker.mapID == mapID then
         marks[#marks + 1] = { kind = "MARKER", look = "MARKER", x = marker.x, y = marker.y,
@@ -222,7 +233,7 @@ function Extras:Marks(mapID, px, py, height)
     end
     -- Every mark says how far it is from the player, when the player stands on this map.
     for _, mark in ipairs(marks) do
-        local away = px and MS.JourneyMapDistance and MS.JourneyMapDistance:Format(mapID, px, py, mark.x, mark.y)
+        local away = px and not mark.plain and MS.JourneyMapDistance and MS.JourneyMapDistance:Format(mapID, px, py, mark.x, mark.y)
         if away then table.insert(mark.lines, 2, away) end
     end
     return marks
@@ -248,11 +259,19 @@ function Extras:Draw()
         pin:ClearAllPoints()
         pin:SetPoint("CENTER", layer, "TOPLEFT", mark.x * width * scale, -mark.y * height * scale)
         self:Paint(pin, mark.look)
+        pin.icon:SetVertexColor(unpack(mark.color or WHITE))
+        if mark.count or pin.count then
+            pin.count = pin.count or pin:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            pin.count:ClearAllPoints()
+            pin.count:SetPoint("BOTTOMRIGHT", pin, "BOTTOMRIGHT", 3, -2)
+            pin.count:SetText(mark.count and mark.count > 1 and tostring(mark.count) or "")
+        end
         pin.kind, pin.lines, pin.doors = mark.kind, mark.lines, mark.doors
         pin:Show()
     end
     for index = #marks + 1, #self.pins do self.pins[index]:Hide() end
     self.pinCount = #marks
+    self.fellowsDrawn = MS.JourneyFellows and MS.JourneyFellows.version
     self:Line()
 end
 
@@ -292,7 +311,10 @@ function Extras:Tick(elapsed)
     local mapID = self.map:GetMapID()
     local px, py = PlayerAt(mapID)
     local from = self.drawnFrom
-    if (px == nil) ~= (from == nil) or (px and (math.abs(px - from[1]) + math.abs(py - from[2]) > .02)) then
+    local fellows = MS.JourneyFellows
+    if fellows then fellows:AskGuild() end
+    if (px == nil) ~= (from == nil) or (px and (math.abs(px - from[1]) + math.abs(py - from[2]) > .02))
+        or (fellows and fellows.version ~= self.fellowsDrawn) then
         self:Draw()
     end
 end

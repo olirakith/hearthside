@@ -13,6 +13,7 @@ events:SetScript("OnEvent", function(_, event)
         MS.JourneySession:Initialize()
         if MS.JourneyDayLog then MS.JourneyDayLog:Initialize() end
         if MS.JourneyInventoryData then MS.JourneyInventoryData:Start() end
+        if MS.JourneyFellows then MS.JourneyFellows:Start() end
     elseif event == "PLAYER_LOGOUT" then
         if MS.JourneyInventoryData then MS.JourneyInventoryData:Stop() end
         MS.Runtime:OnLogout()

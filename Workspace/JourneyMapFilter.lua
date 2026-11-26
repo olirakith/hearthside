@@ -18,6 +18,7 @@ Filter.list = {
     { key = "mapIconBANK", label = "JOURNEY_MAP_SERVICE_BANK", kind = "BANK" },
     { key = "mapIconAUCTION", label = "JOURNEY_MAP_SERVICE_AUCTION", kind = "AUCTION" },
     { key = "mapIconMAILBOX", label = "JOURNEY_MAP_FILTER_MAILBOXES", kind = "MAILBOX" },
+    { key = "mapIconFELLOW", label = "JOURNEY_MAP_FILTER_FELLOWS", kind = "FELLOW" },
     { key = "showTravelTrace", label = "JOURNEY_MAP_FILTER_TRACE", trace = true },
 }
 
