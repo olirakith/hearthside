@@ -16,6 +16,13 @@ local function Read(functionName, ...)
     if ok then return value end
 end
 
+-- PLAYER_DEAD also fires when a character logs in already dead: only the change from alive counts.
+local function IsDead()
+    local value = Read("UnitIsDeadOrGhost", "player")
+    if type(_G.issecretvalue) == "function" and issecretvalue(value) then return false end
+    return value == true
+end
+
 local function CharacterKey()
     return MS.JourneyCharacterIdentity:Resolve().key
 end
@@ -62,6 +69,7 @@ function Session:AddEvent(kind, detail, metadata)
         detail = detail, mapID = metadata.mapID, questID = metadata.questID }
     Trim(data.events)
     if MS.JourneyMemory then MS.JourneyMemory:OnSessionEvent(kind, detail, metadata, Now()) end
+    if MS.JourneyDayLog then MS.JourneyDayLog:OnSessionEvent(kind, detail, metadata, Now()) end
     if MS.SessionFeed then MS.SessionFeed:Refresh() end
 end
 
@@ -187,13 +195,14 @@ function Session:Initialize()
     else
         self:New()
     end
+    self.dead = IsDead()
     if not self.eventFrame then
         local frame = CreateFrame("Frame")
         frame:SetScript("OnEvent", function(_, event, ...)
             Session:OnEvent(event, ...)
         end)
         for _, event in ipairs({ "ZONE_CHANGED_NEW_AREA", "ZONE_CHANGED", "PLAYER_LEVEL_UP",
-            "PLAYER_DEAD", "PLAYER_XP_UPDATE", "QUEST_ACCEPTED", "QUEST_TURNED_IN" }) do
+            "PLAYER_DEAD", "PLAYER_ALIVE", "PLAYER_UNGHOST", "PLAYER_XP_UPDATE", "QUEST_ACCEPTED", "QUEST_TURNED_IN" }) do
             local ok = pcall(frame.RegisterEvent, frame, event)
             if event == "QUEST_TURNED_IN" then self.questTurnedInSupported = ok end
         end
@@ -232,7 +241,11 @@ function Session:OnEvent(event, ...)
         local level = ...
         self:AddEvent("LEVEL_UP", tostring(level or ""))
         self:UpdateXP()
+    elseif event == "PLAYER_ALIVE" or event == "PLAYER_UNGHOST" then
+        self.dead = IsDead()
     elseif event == "PLAYER_DEAD" then
+        if self.dead then return end
+        self.dead = true
         self.data.deaths = self.data.deaths + 1
         self:AddEvent("PLAYER_DEAD")
     elseif event == "PLAYER_XP_UPDATE" then

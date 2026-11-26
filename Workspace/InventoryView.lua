@@ -2,7 +2,7 @@ local MS = _G.MS
 MS.InventoryView = { active = false, supported = false, visible = false, dirty = true,
     refreshCount = 0, deferredRefreshCount = 0, selectedCategory = "OVERVIEW" }
 local View = MS.InventoryView
-local KINDS = { "OVERVIEW", "TRACKED", "FINDS", "QUEST", "CONSUMABLE",
+local KINDS = { "OVERVIEW", "CHARACTERS", "TRACKED", "FINDS", "QUEST", "CONSUMABLE",
     "EQUIPMENT", "CRAFTING", "RECIPE", "OTHER" }
 local CATEGORIES = { "CONSUMABLE", "EQUIPMENT", "CRAFTING", "RECIPE", "OTHER" }
 
@@ -192,6 +192,7 @@ function View:Groups()
     local groups = {}
     for _, kind in ipairs(KINDS) do groups[kind] = {} end
     groups.TRACKED = Sorted(data.tracked, data)
+    groups.CHARACTERS = MS.JourneyRoster and MS.JourneyRoster:List() or {}
     local finds = {}
     for id, count in pairs(data.finds) do
         if count > 0 then finds[id] = true end
@@ -226,9 +227,8 @@ function View:PlaceIndex(groups, width, startY, margin, large)
         if large then
             x, y = margin, startY + 31 + (index - 1) * (rowHeight + 3)
         else
-            local column = index <= 4 and index - 1 or index - 5
-            x = margin + column * (indexWidth + 8)
-            y = startY + (index <= 4 and 0 or rowHeight + 7)
+            x = margin + ((index - 1) % 5) * (indexWidth + 8)
+            y = startY + (index <= 5 and 0 or rowHeight + 7)
         end
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", self.frame, "TOPLEFT", x, -y)
@@ -361,11 +361,15 @@ function View:PlaceDetail(width)
     local item = id and data:EnsureItem(id) or nil
     local inner, y = width - 32, 17
     d:SetWidth(width)
-    y = y + Place(d.heading, d, 16, y, inner,
-        MS.L[id and "JOURNEY_INVENTORY_DETAIL" or "JOURNEY_INVENTORY_BAG_SUMMARY"]) + 17
+    local heading = id and "JOURNEY_INVENTORY_DETAIL"
+        or self.selectedCategory == "CHARACTERS" and "JOURNEY_ROSTER_SUMMARY" or "JOURNEY_INVENTORY_BAG_SUMMARY"
+    y = y + Place(d.heading, d, 16, y, inner, MS.L[heading]) + 17
     for _, key in ipairs({ "icon", "category", "owned", "bags", "finds",
         "target", "targetLabel", "action", "edit", "save", "clear" }) do d[key]:Hide() end
-    if not id then
+    if not id and self.selectedCategory == "CHARACTERS" and MS.JourneyRosterView then
+        d.name:Hide()
+        y = y + Place(d.owned, d, 16, y, inner, MS.JourneyRosterView:Summary()) + 16
+    elseif not id then
         y = y + Place(d.name, d, 16, y, inner,
             self:OverviewSummary()) + 16
     else
@@ -566,7 +570,10 @@ function View:RenderContent(groups, width)
         section.heading:Hide(); section.rule:Hide(); section.empty:Hide()
     end
     for _, row in pairs(self.summaryRows) do row.name:Hide(); row.count:Hide() end
-    if kind == "OVERVIEW" then
+    if MS.JourneyRosterView then MS.JourneyRosterView:Hide() end
+    if kind == "CHARACTERS" and MS.JourneyRosterView then
+        y = MS.JourneyRosterView:Place(self, y, width, self.layoutMode ~= "THREE_COLUMN")
+    elseif kind == "OVERVIEW" then
         for _, sectionKind in ipairs({ "TRACKED", "FINDS", "QUEST" }) do
             y = self:PlaceSection(sectionKind, groups[sectionKind], y, width, 5)
         end

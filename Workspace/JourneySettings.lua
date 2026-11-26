@@ -10,6 +10,8 @@ MS.JourneySettings = {
         showMinimapButton = true, minimapAngle = 210, fadeWhenMoving = true, movingOpacity = .4,
         -- Streamer mode (BroadcastMode): never reset with the others, a stream may be live.
         broadcastMode = false,
+        -- The "what I missed" band (JourneyMissedBanner).
+        showMissedBanner = true,
         -- The Contrat's live view (JourneyLiveView), for streamers only: off until asked.
         contractLive = false,
         -- Chat in Journey (JourneyChat): off by default during the beta; panel height 1-3.

@@ -109,13 +109,17 @@ function Extras:Pin(index)
         pin:SetSize(self.pinSize, self.pinSize)
         pin.icon = pin:CreateTexture(nil, "ARTWORK")
         pin.icon:SetAllPoints(pin)
-        pin:RegisterForClicks("RightButtonUp")
+        pin:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         pin:SetScript("OnEnter", ShowTooltip)
         pin:SetScript("OnLeave", HideTooltip)
         pin:SetScript("OnHide", HideTooltip)
-        -- Ctrl+right click on the marker removes it; other pins have no action.
-        pin:SetScript("OnClick", function(self)
-            if self.kind == "MARKER" and IsControlKeyDown() then MS.JourneyMarker:Clear() end
+        -- Ctrl+right click on the marker removes it; a left click on an entrance shows its dungeon.
+        pin:SetScript("OnClick", function(self, button)
+            if button == "LeftButton" then
+                if self.doors and #self.doors > 0 then MS.JourneyDungeonMap:Prepare(self.doors) end
+            elseif self.kind == "MARKER" and IsControlKeyDown() then
+                MS.JourneyMarker:Clear()
+            end
         end)
         self.pins[index] = pin
     end
@@ -179,7 +183,9 @@ function Extras:Marks(mapID, px, py, height)
                 local lines = { entry.name or L().JOURNEY_MAP_ENTRANCE }
                 for index = 2, type(entry.names) == "table" and #entry.names or 0 do lines[#lines + 1] = entry.names[index] end
                 lines[#lines + 1] = entry.raid and L().JOURNEY_MAP_ENTRANCE_RAID or L().JOURNEY_MAP_ENTRANCE
-                marks[#marks + 1] = { kind = "ENTRANCE", look = look, x = entry.x, y = entry.y, lines = lines }
+                local doors = MS.JourneyDungeons and MS.JourneyDungeonMap and MS.JourneyDungeons:Behind(entry) or {}
+                if #doors > 0 then lines[#lines + 1] = L().JOURNEY_DUNGEON_PREPARE end
+                marks[#marks + 1] = { kind = "ENTRANCE", look = look, x = entry.x, y = entry.y, lines = lines, doors = doors }
             end
         end
     end
@@ -242,7 +248,7 @@ function Extras:Draw()
         pin:ClearAllPoints()
         pin:SetPoint("CENTER", layer, "TOPLEFT", mark.x * width * scale, -mark.y * height * scale)
         self:Paint(pin, mark.look)
-        pin.kind, pin.lines = mark.kind, mark.lines
+        pin.kind, pin.lines, pin.doors = mark.kind, mark.lines, mark.doors
         pin:Show()
     end
     for index = #marks + 1, #self.pins do self.pins[index]:Hide() end

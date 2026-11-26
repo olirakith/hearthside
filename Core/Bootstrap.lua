@@ -11,6 +11,7 @@ events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_LOGIN" then
         MS.Database:Initialize()
         MS.JourneySession:Initialize()
+        if MS.JourneyDayLog then MS.JourneyDayLog:Initialize() end
         if MS.JourneyInventoryData then MS.JourneyInventoryData:Start() end
     elseif event == "PLAYER_LOGOUT" then
         if MS.JourneyInventoryData then MS.JourneyInventoryData:Stop() end

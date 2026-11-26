@@ -4,6 +4,8 @@ MS.JourneyWorkspace = { active = false, view = "MAP" }
 local Journey = MS.JourneyWorkspace
 -- Logical px kept empty under the footer (second-screen taskbar / physical edge).
 Journey.BOTTOM_SAFE_INSET = 28
+-- The Parcours tab shows the page of the day; the older progression view stays as a fallback.
+local function Parcours() return MS.JourneyDayView or MS.JourneyProgressionView end
 local VIEWS = { "MAP", "QUESTS", "PROGRESSION", "CHRONICLES", "INK", "INVENTORY", "SETTINGS" }
 
 local function ChronicleUI(target, method, ...)
@@ -97,7 +99,7 @@ function Journey:Create()
     self:CreateTabMenu(parent)
     MS.SessionFeed:Create(parent)
     MS.JourneySettings:CreateView(parent)
-    if MS.JourneyProgressionView then MS.JourneyProgressionView:Create(parent) end
+    if Parcours() then Parcours():Create(parent) end
     MS.QuestJournal:Create(parent)
     MS.MapView:Create(parent)
     MS.InventoryView:Create(parent)
@@ -109,6 +111,7 @@ function Journey:Create()
     if MS.JourneyChatView then MS.JourneyChatView:Create(parent) end
     if MS.JourneyMentorBand then MS.JourneyMentorBand:Create(parent) end
     if MS.JourneyContractBand then MS.JourneyContractBand:Create(parent) end
+    if MS.JourneyMissedBanner then MS.JourneyMissedBanner:Create(parent) end
     if MS.JourneyLiveView then MS.JourneyLiveView:Create(parent) end
     MS.JourneyStatusBar:Create(parent)
     if not self.settingsListener then
@@ -206,8 +209,10 @@ function Journey:LayoutView(view)
     local bandHeight = band and band:Height(view) or 0
     local contractBand = MS.JourneyContractBand
     local contractHeight = contractBand and contractBand:Height(view) or 0
+    local missed = MS.JourneyMissedBanner
+    local missedHeight = missed and missed:Height(view) or 0
     local content = { x = full.x, y = full.y + journalHeight,
-        width = full.width, height = math.max(1, full.height - journalHeight - bandHeight - contractHeight) }
+        width = full.width, height = math.max(1, full.height - journalHeight - bandHeight - contractHeight - missedHeight) }
     self.contentRect = content
     if band then
         band:Layout({ x = full.x, y = content.y + content.height, width = full.width, height = bandHeight })
@@ -215,6 +220,11 @@ function Journey:LayoutView(view)
     if contractBand then
         contractBand:Layout({ x = full.x, y = content.y + content.height + bandHeight, width = full.width,
             height = contractHeight })
+    end
+    -- Right under the tabs, above every other band.
+    if missed then
+        missed:Layout({ x = full.x, y = content.y + content.height + bandHeight + contractHeight, width = full.width,
+            height = missedHeight })
     end
     MS.SessionFeed:Layout(journalRect, "STRIP")
     MS.QuestJournal:Layout(content)
@@ -228,7 +238,7 @@ function Journey:LayoutView(view)
         self.chroniclesToastReady = ChronicleUI(MS.ChroniclesDiscoveryToast, "Layout")
     end
     MS.JourneySettings:LayoutView(content)
-    if MS.JourneyProgressionView then MS.JourneyProgressionView:Layout(content) end
+    if Parcours() then Parcours():Layout(content) end
     if MS.JourneyLiveView then MS.JourneyLiveView:Layout(content) end
     local footer = layout.bottom
     self.footerRect = { x = footer.x, y = footer.y + inset, width = footer.width, height = footer.height }
@@ -406,7 +416,7 @@ end
 
 function Journey:ViewFrame(view)
     local owners = { MAP = MS.MapView, QUESTS = MS.QuestJournal, INVENTORY = MS.InventoryView,
-        SETTINGS = MS.JourneySettings, PROGRESSION = MS.JourneyProgressionView, CHRONICLES = MS.ChroniclesView }
+        SETTINGS = MS.JourneySettings, PROGRESSION = Parcours(), CHRONICLES = MS.ChroniclesView }
     return owners[view] and owners[view].frame
 end
 
@@ -450,11 +460,11 @@ function Journey:SelectView(view)
     MS.QuestJournal.frame:SetShown(view == "QUESTS")
     MS.InventoryView.frame:SetShown(view == "INVENTORY")
     if MS.JourneySettings.HideView then MS.JourneySettings:HideView() end
-    if MS.JourneyProgressionView then MS.JourneyProgressionView:SetVisible(false) end
+    if Parcours() then Parcours():SetVisible(false) end
     if self.chroniclesViewReady then ChronicleUI(MS.ChroniclesView, "SetVisible", false) end
     if MS.Ink and MS.Ink.Tab then MS.Ink.Tab:SetVisible(false) end
     self:LayoutView(view)
-    if MS.JourneyProgressionView then MS.JourneyProgressionView:SetVisible(view == "PROGRESSION") end
+    if Parcours() then Parcours():SetVisible(view == "PROGRESSION") end
     if self.chroniclesViewReady and not ChronicleUI(MS.ChroniclesView, "SetVisible", view == "CHRONICLES") then
         self.chroniclesViewReady = false
         if view == "CHRONICLES" then return self:SelectView("MAP") end
@@ -486,6 +496,8 @@ function Journey:Start()
         self.active = true
         MS.QuestJournal:Start()
         MS.InventoryView:Start()
+        if MS.JourneyMissedBanner then MS.JourneyMissedBanner:Start() end
+        if MS.JourneyRoster then MS.JourneyRoster:Start() end
         MS.JourneyStatusBar:Start()
         MS.JourneySession:StartClock()
         local saved = MS.Database:Get().workspace
@@ -512,7 +524,7 @@ function Journey:Stop()
     if MS.JourneyChatView then pcall(MS.JourneyChatView.Stop, MS.JourneyChatView) end
     if MS.JourneyLiveView then pcall(MS.JourneyLiveView.Close, MS.JourneyLiveView) end
     if MS.JourneyMapKey then MS.JourneyMapKey:Apply() end
-    if MS.JourneyProgressionView then MS.JourneyProgressionView:SetVisible(false) end
+    if Parcours() then Parcours():SetVisible(false) end
     if self.chroniclesViewReady then ChronicleUI(MS.ChroniclesView, "SetVisible", false) end
     if self.chroniclesToastReady then ChronicleUI(MS.ChroniclesDiscoveryToast, "Dismiss") end
     if MS.JourneySettings.HideView then MS.JourneySettings:HideView() end
@@ -543,7 +555,7 @@ function Journey:GetStatus()
             questModelRefreshCount = MS.MapView.questModelRefreshCount or 0,
             questModelCoalescedCount = MS.JourneyQuestData.coalescedCount or 0 },
         memory = MS.JourneyMemory and MS.JourneyMemory:GetStatus(),
-        progressionView = MS.JourneyProgressionView and MS.JourneyProgressionView:GetStatus(),
+        progressionView = Parcours() and Parcours():GetStatus(),
         contextPanel = MS.JourneyContextPanel and MS.JourneyContextPanel:GetStatus(),
         sessionJournal = MS.JourneySessionJournal and MS.JourneySessionJournal:GetStatus(),
         settings = { textScale = MS.JourneySettings:Get("textScale"), sessionJournalWidth = MS.JourneySettings:Get("sessionJournalWidth"),

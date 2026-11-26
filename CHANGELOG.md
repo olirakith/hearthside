@@ -1,5 +1,73 @@
 # Hearthside
 
+## 0.3.0-beta.1
+
+*(Français plus bas.)*
+
+### Parcours, the page of the day (new)
+The Parcours tab now writes your day while you play, on the second screen.
+- Newest first, with the time: logins and breaks, arrivals and first visits, quests turned in, levels, deaths with what probably killed you, enemies defeated (grouped by place), players joining your group, and tales of the Ink you finish.
+- A flight counts once: one arrival when you land, with where you flew from.
+- A dungeon is one block: its bosses as round portraits, the ones not beaten yet greyed out. Open it to see the chosen boss in 3D.
+- On the right, the day in numbers: play time, experience, quests, enemies, bosses, deaths, and who played with you.
+- A banner with the map of your zone and your character, who cheers when you gain a level.
+- Short animations only when something happens while the page is open. **Settings**: "Reduce motion" and "Show 3D models".
+- The days are kept for two weeks. The page starts with this version: earlier days stay empty.
+
+### Dungeons on the map (new)
+- Inside a dungeon, the map shows its plan, floor by floor, with your quests there and its bosses beside it.
+- Before going in: click a dungeon's entrance on the map to see its plan, the quests to pick up first and its bosses.
+
+### My characters (new)
+In the Inventory tab: each of your characters as it was at its last logout — where, gold, rested experience, free bag slots, professions and their cooldowns.
+
+### What I missed (new)
+Back from being away, on a flight or out of a long fight: a short band says what happened meanwhile (whispers, mail, an auction sold, a cooldown ready). It only shows when something happened. It can be turned off in Settings.
+
+### Fixed
+- Logging in with a dead character no longer counts one more death.
+
+### Good to know
+- Works with the current Hearthside Companion (0.2.0 Beta): nothing to update there.
+- Close the game, update the addon, then start the game again: this version adds files.
+- If Hearthside opens on the game screen instead of the second screen after the update, type /reload once.
+- Something breaks? Tell me on Discord, with a screenshot.
+
+---
+
+## 0.3.0-beta.1 (français)
+
+### Parcours, la page du jour (nouveau)
+L'onglet Parcours écrit maintenant votre journée pendant que vous jouez, sur le second écran.
+- Le plus récent en haut, avec l'heure : connexions et pauses, arrivées et premières visites, quêtes rendues, niveaux, morts avec ce qui vous a sans doute tué, ennemis vaincus (regroupés par lieu), joueurs qui rejoignent votre groupe, et récits de L'Encre achevés.
+- Un vol ne compte qu'une fois : une seule arrivée à l'atterrissage, avec le lieu de départ.
+- Un donjon tient en un bloc : ses boss en portraits ronds, ceux pas encore vaincus en gris. Ouvrez-le pour voir le boss choisi en 3D.
+- À droite, la journée en chiffres : temps de jeu, expérience, quêtes, ennemis, boss, morts, et qui a joué avec vous.
+- Une bannière avec la carte de votre zone et votre personnage, qui acclame quand vous gagnez un niveau.
+- De courtes animations, seulement quand quelque chose arrive pendant que la page est ouverte. **Paramètres** : « Réduire les animations » et « Afficher les modèles 3D ».
+- Les jours sont gardés deux semaines. La page commence avec cette version : les jours d'avant restent vides.
+
+### Les donjons sur la carte (nouveau)
+- Dans un donjon, la carte montre son plan, étage par étage, avec vos quêtes sur place et ses boss à côté.
+- Avant d'y aller : cliquez sur l'entrée d'un donjon sur la carte pour voir son plan, les quêtes à prendre avant d'entrer et ses boss.
+
+### Mes personnages (nouveau)
+Dans l'onglet Inventaire : chacun de vos personnages tel qu'à sa dernière déconnexion — où, or, repos, places libres dans les sacs, métiers et leurs temps de recharge.
+
+### Ce que j'ai raté (nouveau)
+De retour d'une absence, d'un vol ou d'un long combat : un court bandeau dit ce qui s'est passé entre-temps (chuchotements, courrier, vente à l'hôtel des ventes, recharge prête). Il n'apparaît que si quelque chose s'est passé. Il se coupe dans les Paramètres.
+
+### Corrigé
+- Se connecter avec un personnage mort ne compte plus une mort de trop.
+
+### À savoir
+- Fonctionne avec le Hearthside Companion actuel (0.2.0 Beta) : rien à mettre à jour de ce côté.
+- Fermez le jeu, mettez l'addon à jour, puis relancez le jeu : cette version ajoute des fichiers.
+- Si Hearthside s'ouvre sur l'écran du jeu au lieu du second écran après la mise à jour, tapez /reload une fois.
+- Un souci ? Dites-le-moi sur Discord, avec une capture.
+
+---
+
 ## 0.2.0-beta.2
 
 *(Français plus bas.)*

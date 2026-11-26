@@ -252,8 +252,11 @@ function Map:OnEvent(event)
 		if event == "PLAYER_ENTERING_WORLD" or not QuestData.index or QuestData.index.candidateKey ~= key then
 			QuestData:Invalidate(event)
 		end
+		-- Going in or out of a dungeon brings the map back to the player, whatever was being read.
+		local moved = MS.JourneyDungeonMap ~= nil and MS.JourneyDungeonMap:Check()
+		if moved then self:SetMode("FOLLOW_PLAYER") end
 		if self.mode == "FOLLOW_PLAYER" then
-			self:FollowPlayerMap(event)
+			self:FollowPlayerMap(event, moved)
 		else
 			self:ResolvePlayerJourneyMap() -- Diagnostic only; manual navigation owns the canvas.
 			if QuestData.indexDirty then self:RefreshQuests() end
@@ -324,6 +327,8 @@ function Map:LayoutRightColumn()
     if not self.side or not self.scroll then return end
     local context = MS.JourneyContextPanel and MS.JourneyContextPanel.selectedContext
     local shown = self.active and context and context.type ~= "EMPTY"
+    -- Beside a dungeon plan, the summary of the zone outside would only take room.
+    if shown and context.type == "ZONE" and MS.JourneyDungeonMap and MS.JourneyDungeonMap:Dungeon() then shown = false end
     local width, height = self.side:GetWidth(), self.side:GetHeight()
     local panel = MS.JourneyContextPanel
     local compact = shown and panel:IsCompactZone()
@@ -373,6 +378,7 @@ end
 -- Tabs and next step above the list; returns where the list starts.
 function Map:LayoutColumnHeader(width)
     local top = 42
+    self.sideTitle:SetWidth(math.max(1, width - 28))
     if self.segments and self.segments[1]:IsShown() then
         local half = math.floor((width - 28) / 2)
         for index, button in ipairs(self.segments) do
@@ -428,6 +434,13 @@ function Map:RefreshZoneStrip()
     local zoneID = Data:LocalZone(self.mapID)
     local info = Data:Info(zoneID or self.mapID)
     local parts = { info and info.name or MS.L.JOURNEY_MAP_UNKNOWN_ZONE }
+    local dungeon = MS.JourneyDungeonMap and MS.JourneyDungeonMap:Dungeon()
+    if dungeon then
+        -- The dungeon's own line: the zone's counts would read as the dungeon's.
+        self.zoneStrip:SetText(dungeon.name)
+        if MS.JourneyRoadNote then MS.JourneyRoadNote:Place(self.canvas, spare, MS.JourneySettings:Get("textScale")) end
+        return
+    end
     local memory = MS.JourneyMemory
     local zone = zoneID and memory and memory:GetZone(zoneID)
     if zone then
@@ -587,6 +600,13 @@ end
 
 function Map:RefreshBreadcrumb()
 	local chain = self.chain or {}
+	local dungeon = MS.JourneyDungeonMap and MS.JourneyDungeonMap:Dungeon()
+	if dungeon then
+		local steps = {}
+		for index, info in ipairs(chain) do steps[index] = info end
+		steps[#steps + 1] = { name = dungeon.name }
+		chain = steps
+	end
 	for _, button in ipairs(self.breadcrumbs) do
 		button:Hide()
 	end
@@ -617,7 +637,7 @@ function Map:RefreshBreadcrumb()
 		button:SetPoint("LEFT", self.breadcrumb, "LEFT", x, 0)
 		local id = info.mapID
 		button:SetScript("OnClick", function()
-			Map:Navigate(id)
+			if id then Map:Navigate(id) end -- the dungeon itself has no map to go to
 		end)
 		button:Show()
 		x = x + buttonWidth + 5
@@ -757,12 +777,22 @@ end
 
 function Map:RenderSidebar()
 	local previousScroll = self.scroll:GetVerticalScroll()
-	local mapChanged = self.sidebarMapID ~= self.mapID
-	self.sidebarMapID = self.mapID
+	local dungeon = MS.JourneyDungeonPanel and MS.JourneyDungeonMap and MS.JourneyDungeonMap:Dungeon()
+	local place = dungeon and "DUNGEON" .. dungeon.id or self.mapID
+	local mapChanged = self.sidebarMapID ~= place
+	self.sidebarMapID = place
 	for _, row in ipairs(self.rows) do
 		row:Hide()
 	end
 	self.rowCount, self.rowY = 0, 0
+	if dungeon then
+		local ok, err = pcall(MS.JourneyDungeonPanel.Render, MS.JourneyDungeonPanel, self, dungeon)
+		if not ok then self.status.dungeonError = tostring(err) end
+		self.scrollChild:SetHeight(math.max(1, self.rowY))
+		self.scroll:SetVerticalScroll(mapChanged and 0
+			or math.min(previousScroll, math.max(0, self.rowY - self.scroll:GetHeight())))
+		return
+	end
 	local quests = self.quests or {}
 	local Guide = MS.JourneyQuestieGuide
 	local offersMode = self.offersMode == true and Guide ~= nil and Guide:IsAvailable()
@@ -1563,7 +1593,12 @@ end
 
 function Map:FollowPlayerMap(reason, force)
 	local id = self:ResolvePlayerJourneyMap()
+	local Plan = MS.JourneyDungeonMap
+	if Plan then Plan:ClosePreview() end
+	local inside = Plan ~= nil and Plan:Dungeon() ~= nil
+	if inside then id = Plan:ZoneMap() or id end
 	if not id then
+		if Plan and MS.JourneyMapCanvas then MS.JourneyMapCanvas:Sync(self.mapID) end -- a plan to draw, or to remove
 		self.status.error = "PLAYER_MAP_UNAVAILABLE"
 		return nil
 	end
@@ -1583,6 +1618,7 @@ function Map:Navigate(mapID)
 	if not Data:Info(mapID) then
 		return nil
 	end
+	if MS.JourneyDungeonMap then MS.JourneyDungeonMap:ClosePreview() end
 	self:SetMode("MANUAL_MAP")
 	return self:SetMapID(mapID, "MANUAL_NAVIGATION")
 end
@@ -1752,6 +1788,7 @@ function Map:Show()
 		pcall(self.eventFrame.RegisterEvent, self.eventFrame, event)
 	end
 	local navigated
+	if MS.JourneyDungeonMap and MS.JourneyDungeonMap:Check() then self:SetMode("FOLLOW_PLAYER") end
 	if not self.activationStarted then
 		self:BeginActivation("INITIALIZE")
 		navigated = self.mapID ~= nil

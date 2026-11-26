@@ -6,7 +6,7 @@
 ## Author: Olirakith
 ## X-Curse-Project-ID: 1802916
 ## X-Wago-ID: 4N2bwZNL
-## Version: 0.2.0-beta.2
+## Version: 0.3.0-beta.1
 ## IconTexture: Interface\Icons\INV_Misc_Map_01
 ## AddonCompartmentFunc: Hearthside_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: Hearthside_OnAddonCompartmentEnter
@@ -69,6 +69,11 @@ Workspace/JourneyRoadNote.lua
 Workspace/JourneyMapLayout.lua
 Workspace/JourneyLivingMapView.lua
 Workspace/JourneyTrace.lua
+Workspace/JourneyDungeons.lua
+Workspace/JourneyDungeonBosses.lua
+Workspace/JourneyDungeonRun.lua
+Workspace/JourneyDungeonPanel.lua
+Workspace/JourneyDungeonMap.lua
 Workspace/JourneyMapCanvas.lua
 Workspace/JourneyQuestieOffers.lua
 Workspace/JourneyQuestPoiNotice.lua
@@ -79,13 +84,19 @@ Workspace/JourneyMapExtras.lua
 Workspace/JourneyMapFilter.lua
 Workspace/JourneyInventoryData.lua
 Workspace/JourneyRoster.lua
+Workspace/JourneyRosterView.lua
 Workspace/JourneyMarker.lua
+Workspace/JourneyMotion.lua
+Workspace/JourneyFaces.lua
+Workspace/JourneyDayLog.lua
+Workspace/JourneyDayView.lua
 Workspace/InventoryView.lua
 Workspace/Workspace.lua
 Workspace/JourneyWorkspace.lua
 Workspace/JourneyMentorBand.lua
 Workspace/JourneyGroupQuests.lua
 Workspace/JourneyContractBand.lua
+Workspace/JourneyMissedBanner.lua
 Workspace/JourneyHomeButton.lua
 Workspace/JourneyLiveView.lua
 Workspace/JourneyWindow.lua

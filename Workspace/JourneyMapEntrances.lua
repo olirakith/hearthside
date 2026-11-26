@@ -76,6 +76,7 @@ end
 local function Spot(list, areaID, name, x, y)
     for _, entry in ipairs(list) do
         if math.abs(entry.x - x) < .006 and math.abs(entry.y - y) < .006 then
+            entry.areas[#entry.areas + 1] = areaID
             for _, known in ipairs(entry.names) do
                 if known == name then return false end
             end
@@ -84,7 +85,7 @@ local function Spot(list, areaID, name, x, y)
             return false
         end
     end
-    list[#list + 1] = { areaID = areaID, name = name, names = { name }, x = x, y = y, raid = E.RAIDS[areaID] == true }
+    list[#list + 1] = { areaID = areaID, areas = { areaID }, name = name, names = { name }, x = x, y = y, raid = E.RAIDS[areaID] == true }
     return true
 end
 
@@ -138,7 +139,7 @@ function E:Build()
     return byMap
 end
 
--- Entrances on this map as { areaID, name, names, x, y, raid } (x, y in 0-1), sorted by name; empty without QuestieDB.
+-- Entrances on this map as { areaID, areas, name, names, x, y, raid } (x, y in 0-1), sorted by name; empty without QuestieDB.
 function E:ForMap(uiMapID)
     local byMap = self:Build()
     if not byMap or type(uiMapID) ~= "number" then return {} end

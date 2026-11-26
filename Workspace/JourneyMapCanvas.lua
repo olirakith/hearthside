@@ -187,7 +187,8 @@ end
 
 function Canvas:Sync(mapID)
     local view = MS.MapView
-    local useCanvas = self.enabled and mapID ~= nil and self:Attach()
+    local plan = MS.JourneyDungeonMap and MS.JourneyDungeonMap:Sync()
+    local useCanvas = not plan and self.enabled and mapID ~= nil and self:Attach()
     if useCanvas then
         local ok, err = pcall(function()
             self.frame:SetMapID(mapID)
@@ -200,8 +201,8 @@ function Canvas:Sync(mapID)
     end
     if not useCanvas and self.frame then self.frame:Hide() end
     if MS.JourneyQuestPoiNotice then MS.JourneyQuestPoiNotice:Update() end
-    if useCanvas then view.canvas:Hide() else view.canvas:Show() end
-    view.status.mapRenderer = useCanvas and "BLIZZARD_CANVAS" or "JOURNEY_FALLBACK"
+    if useCanvas or plan then view.canvas:Hide() else view.canvas:Show() end
+    view.status.mapRenderer = plan and "DUNGEON_PLAN" or useCanvas and "BLIZZARD_CANVAS" or "JOURNEY_FALLBACK"
 end
 
 function Canvas:Highlight(questID)

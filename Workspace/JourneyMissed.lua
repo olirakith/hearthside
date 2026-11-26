@@ -8,10 +8,10 @@ MS.JourneyMissed = Missed
 Missed.MIN_AWAY = 30
 Missed.MAX_SENDERS = 20
 Missed.REASONS = { AFK = "AFK", TAXI = "TAXI", COMBAT = "COMBAT", OFFLINE = "OFFLINE" }
-Missed.KINDS = { WHISPER = "WHISPER", MAIL = "MAIL", COOLDOWN = "COOLDOWN", FRIEND = "FRIEND" }
+Missed.KINDS = { WHISPER = "WHISPER", MAIL = "MAIL", SALE = "SALE", COOLDOWN = "COOLDOWN", FRIEND = "FRIEND" }
 
 local REASON_ORDER = { "AFK", "TAXI", "COMBAT", "OFFLINE" }
-local KIND_ORDER = { "WHISPER", "MAIL", "COOLDOWN", "FRIEND" }
+local KIND_ORDER = { "WHISPER", "MAIL", "SALE", "COOLDOWN", "FRIEND" }
 
 local active, start, counts, senders, durations, pending
 

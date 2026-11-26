@@ -84,7 +84,7 @@ local function Changed()
     if A.Panel then A.Panel:Changed("INK") end
     if I.Tab then I.Tab:Changed() end
     if I.MapLayer then I.MapLayer:Changed() end
-    local journal, parcours = MS.QuestJournal, MS.JourneyProgressionView
+    local journal, parcours = MS.QuestJournal, MS.JourneyDayView or MS.JourneyProgressionView
     if journal and journal.Invalidate then
         journal:Invalidate()
         journal:Refresh()

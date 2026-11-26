@@ -37,9 +37,14 @@ function Guide:Index()
     if InCombatLockdown() or not O:BuildIndex() then return nil end
     local Quest, areaToUi = O.lib.Quest, O.areaToUi
     local started = debugprofilestop and debugprofilestop()
-    local zones, previous = {}, {}
+    local zones, areas, previous = {}, {}, {}
     for _, questID in ipairs(Quest.GetAllIds()) do
         local zone = Quest.Get(questID, "zoneOrSort")
+        if type(zone) == "number" and zone > 0 then -- by area too: a dungeon is no map of its own
+            local list = areas[zone] or {}
+            areas[zone] = list
+            list[#list + 1] = questID
+        end
         local uiMapID = type(zone) == "number" and zone > 0 and areaToUi[zone]
         if uiMapID then
             local list = zones[uiMapID] or {}
@@ -49,7 +54,7 @@ function Guide:Index()
         local nextID = Quest.Get(questID, "nextQuestInChain")
         if type(nextID) == "number" and nextID > 0 then previous[nextID] = questID end
     end
-    self.zones, self.previous = zones, previous
+    self.zones, self.areas, self.previous = zones, areas, previous
     O.stats.guideMs = started and (debugprofilestop() - started) or nil
     return zones
 end
