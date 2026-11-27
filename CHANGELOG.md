@@ -1,5 +1,37 @@
 # Hearthside
 
+## 0.3.0-beta.3
+
+*(Français plus bas.)*
+
+### Your corpse on the map (new)
+- Once you release your spirit, your corpse shows on the Hearthside map, as on the game's own map.
+- The line at the bottom right of the map says how far it lies and in which direction, to run back to it.
+- It goes away as soon as you are back to life.
+
+### Fixed
+- Parcours: someone joining your group could show as "Unknown" or at level 0. Parcours now waits until the game knows them, then shows their real name, class and level. Joins already saved as "Unknown" are hidden.
+
+### Good to know
+- Something breaks? Tell me on Discord, with a screenshot.
+
+---
+
+## 0.3.0-beta.3 (français)
+
+### Votre corps sur la carte (nouveau)
+- Une fois l'esprit libéré, votre corps apparaît sur la carte Hearthside, comme sur la carte du jeu.
+- La ligne en bas à droite de la carte indique à quelle distance il se trouve et dans quelle direction, pour le rejoindre.
+- Il disparaît dès que vous êtes ressuscité.
+
+### Corrigé
+- Parcours : un joueur qui rejoignait votre groupe pouvait apparaître en « Inconnu » ou au niveau 0. Parcours attend maintenant que le jeu le connaisse, puis affiche son vrai nom, sa classe et son niveau. Les arrivées déjà enregistrées en « Inconnu » sont masquées.
+
+### À savoir
+- Un souci ? Dites-le-moi sur Discord, avec une capture.
+
+---
+
 ## 0.3.0-beta.2
 
 *(Français plus bas.)*

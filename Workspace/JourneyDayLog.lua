@@ -132,10 +132,16 @@ local function Location(e)
     e.zone, e.mapID = current.zone, current.mapID
     return e
 end
+-- Just after someone joins, the game may not know them yet: "Unknown", level 0. Not a name.
+local function Known(name) return name and name ~= _G.UNKNOWNOBJECT and name ~= _G.UNKNOWN and name or nil end
 local function FullName(unit)
     local first, second = Call(_G.UnitName, unit)
-    first, second = Text(first), Text(second)
+    first, second = Known(Text(first)), Text(second)
     return first and (second and first .. " " .. second or first) or nil
+end
+local function UnitLevelOf(unit)
+    local level = Num(Call(_G.UnitLevel, unit))
+    return level and level >= 1 and level or nil
 end
 local function NPC(unit)
     local guid = Text(Call(_G.UnitGUID, unit))
@@ -202,19 +208,39 @@ local function PollKills(at)
     end
 end
 -- silent: on load, the group already there is not news (a reload would log everyone again).
-local function Group(at, silent)
-    local roster = {}
+-- Someone the game does not know yet is looked at again a little later; a join logged
+-- before their level or class arrived is completed then.
+local Group
+local function GroupLater(silent)
+    local timer = _G.C_Timer
+    if Log.groupRetry or (Log.groupTries or 0) >= 15 or type(timer) ~= "table" or type(timer.After) ~= "function" then return end
+    Log.groupRetry, Log.groupTries = true, (Log.groupTries or 0) + 1
+    Call(timer.After, 2, function() Log.groupRetry = nil; Group(Now(), silent) end)
+end
+Group = function(at, silent)
+    local roster, waiting = {}, false
     local raid = Yes(Call(_G.IsInRaid))
     local count = Num(Call(raid and _G.GetNumGroupMembers or _G.GetNumSubgroupMembers)) or 0
+    Log.joined = Log.joined or {}
     for i = 1, math.min(count, 40) do
         local unit = (raid and "raid" or "party") .. i
         if not Yes(Call(_G.UnitIsUnit, unit, "player")) then
             local name = FullName(unit)
+            if not name then waiting = true end
             if name then
                 local _, class = Call(_G.UnitClass, unit)
-                local mate = { class = Text(class), level = Num(Call(_G.UnitLevel, unit)) }
+                local mate = { class = Text(class), level = UnitLevelOf(unit) }
+                if not mate.level or not mate.class then waiting = true end
                 roster[name] = mate
-                if not silent and not Log.roster[name] then Add({ kind = "GROUP", at = at, name = name, class = mate.class, level = mate.level }) end
+                local joined = Log.joined[name]
+                if not silent and not Log.roster[name] then
+                    local entry = { kind = "GROUP", at = at, name = name, class = mate.class, level = mate.level }
+                    Log.joined[name] = { entry = entry, day = Add(entry) }
+                elseif joined and ((not joined.entry.level and mate.level) or (not joined.entry.class and mate.class)) then
+                    joined.entry.level = joined.entry.level or mate.level
+                    joined.entry.class = joined.entry.class or mate.class
+                    if joined.day then Notify("UPDATE", joined.entry, joined.day) end
+                end
                 if Log.dungeon then
                     local found = false
                     for _, companion in ipairs(Log.dungeon.companions) do if companion == name then found = true end end
@@ -227,6 +253,8 @@ local function Group(at, silent)
         end
     end
     Log.roster = roster
+    for name in pairs(Log.joined) do if not roster[name] then Log.joined[name] = nil end end
+    if waiting then GroupLater(silent) else Log.groupTries = 0 end
 end
 local function Dungeon(at)
     local d = Call(MS.JourneyDungeons and MS.JourneyDungeons.Current, MS.JourneyDungeons)
@@ -431,7 +459,7 @@ local function Event(_, event, a, b, c, d, success)
             end
         end
         Log.encounter = nil
-    elseif event == "GROUP_ROSTER_UPDATE" then Tick(); Group(at)
+    elseif event == "GROUP_ROSTER_UPDATE" then Tick(); Log.groupTries = 0; Group(at)
     elseif event == "PLAYER_REGEN_ENABLED" then PollKills(at)
     elseif event == "PLAYER_XP_UPDATE" then
         if Hidden(a) or (a ~= nil and a ~= "player") then return end

@@ -449,6 +449,7 @@ MS:SetLocale({
         JOURNEY_MAP_MARKER_HINT = "Ctrl+clic droit : poser un repère",
         JOURNEY_MAP_YOU = "Vous %s",
         JOURNEY_MAP_CURSOR = "Curseur %s",
+        JOURNEY_MAP_CORPSE = "Votre corps %s",
         JOURNEY_MAP_LEVELS = "Niveaux %d-%d",
         JOURNEY_DUNGEON_QUESTS = "Vos quêtes ici (%d)",
         JOURNEY_DUNGEON_NO_QUEST = "Aucune de vos quêtes ne se passe ici.",

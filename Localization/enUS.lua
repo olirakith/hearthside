@@ -449,6 +449,7 @@ MS:SetLocale({
         JOURNEY_MAP_MARKER_HINT = "Ctrl+right-click: place a marker",
         JOURNEY_MAP_YOU = "You %s",
         JOURNEY_MAP_CURSOR = "Cursor %s",
+        JOURNEY_MAP_CORPSE = "Your corpse %s",
         JOURNEY_MAP_LEVELS = "Levels %d-%d",
         JOURNEY_DUNGEON_QUESTS = "Your quests here (%d)",
         JOURNEY_DUNGEON_NO_QUEST = "None of your quests takes place here.",

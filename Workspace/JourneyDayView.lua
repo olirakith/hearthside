@@ -126,7 +126,7 @@ function View:Describe(entry, ordinal)
         local meta = {}
         local class = ClassName(entry.class)
         if class then meta[#meta + 1] = class end
-        if type(entry.level) == "number" then meta[#meta + 1] = string.format(L.JOURNEY_DAY_LEVEL_SHORT, tostring(entry.level)) end
+        if type(entry.level) == "number" and entry.level >= 1 then meta[#meta + 1] = string.format(L.JOURNEY_DAY_LEVEL_SHORT, tostring(entry.level)) end
         return { icon = ICONS.GROUP, title = string.format(L.JOURNEY_DAY_GROUP, hex and Paint(name, hex) or Paint(name, GOLD)),
             meta = #meta > 0 and table.concat(meta, ", ") or nil }
     end
@@ -200,7 +200,9 @@ function View:Feed(day)
     local entries = type(day) == "table" and type(day.entries) == "table" and day.entries or {}
     local sorted = {}
     for _, entry in ipairs(entries) do
-        if type(entry) == "table" and type(entry.at) == "number" and (entry.kind == "DUNGEON" or ICONS[entry.kind]) then
+        -- Joins saved before the game knew the player ("Unknown") say nothing.
+        local unknown = type(entry) == "table" and entry.kind == "GROUP" and (entry.name == _G.UNKNOWNOBJECT or entry.name == _G.UNKNOWN)
+        if not unknown and type(entry) == "table" and type(entry.at) == "number" and (entry.kind == "DUNGEON" or ICONS[entry.kind]) then
             sorted[#sorted + 1] = entry
         end
     end

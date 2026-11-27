@@ -239,6 +239,39 @@ function Extras:Marks(mapID, px, py, height)
     return marks
 end
 
+-- The player's corpse on a map, once the spirit is released: nil while alive or elsewhere.
+function Extras.Corpse(mapID)
+    local api = _G.C_DeathInfo
+    if not mapID or type(api) ~= "table" or type(api.GetCorpseMapPosition) ~= "function" then return nil end
+    local ok, spot = pcall(api.GetCorpseMapPosition, mapID)
+    if not ok or type(spot) ~= "table" or type(spot.GetXY) ~= "function" then return nil end
+    local x, y = spot:GetXY()
+    if type(x) ~= "number" or type(y) ~= "number" or x < 0 or x > 1 or y < 0 or y > 1 then return nil end
+    return x, y
+end
+
+-- The game's own corpse pin comes with the standard providers (BattlefieldMapMixin), but they
+-- only draw it when a map opens or changes. The Journey map stays open: it is asked again when
+-- the corpse appears, moves to another map or goes.
+function Extras:DeathProvider()
+    local mixin, providers = _G.DeathMapDataProviderMixin, self.map and self.map.dataProviders
+    if type(mixin) ~= "table" or type(providers) ~= "table" then return nil end
+    for provider in pairs(providers) do
+        if type(provider) == "table" and provider.RefreshAllData == mixin.RefreshAllData then return provider end
+    end
+end
+
+function Extras:WatchCorpse(mapID)
+    local x, y = Extras.Corpse(mapID)
+    local seen = tostring(mapID) .. (x and string.format(":%.4f:%.4f", x, y) or ":-")
+    if seen ~= self.corpseSeen then
+        self.corpseSeen = seen
+        local provider = self:DeathProvider()
+        if provider then pcall(provider.RefreshAllData, provider) end
+    end
+    return x, y
+end
+
 function Extras.Coords(x, y)
     return MS.JourneyMapDistance and MS.JourneyMapDistance.Coords(x, y) or string.format("%.1f, %.1f", x * 100, y * 100)
 end
@@ -285,6 +318,12 @@ function Extras:Line()
     if low and high and high > 0 then parts[#parts + 1] = string.format(L().JOURNEY_MAP_LEVELS, low, high) end
     local px, py = PlayerAt(mapID)
     if px then parts[#parts + 1] = string.format(L().JOURNEY_MAP_YOU, Extras.Coords(px, py)) end
+    -- A ghost running back: how far the body lies, or where on this map.
+    local bx, by = Extras.Corpse(mapID)
+    if bx then
+        local away = px and MS.JourneyMapDistance and MS.JourneyMapDistance:Format(mapID, px, py, bx, by)
+        parts[#parts + 1] = string.format(L().JOURNEY_MAP_CORPSE, away or Extras.Coords(bx, by))
+    end
     local over = map.ScrollContainer and map.ScrollContainer:IsMouseOver()
     if over and type(map.GetNormalizedCursorPosition) == "function" then
         local cx, cy = map:GetNormalizedCursorPosition()
@@ -309,6 +348,7 @@ function Extras:Tick(elapsed)
     info.elapsed = 0
     self:Line()
     local mapID = self.map:GetMapID()
+    self:WatchCorpse(mapID)
     local px, py = PlayerAt(mapID)
     local from = self.drawnFrom
     local fellows = MS.JourneyFellows
