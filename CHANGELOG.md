@@ -1,5 +1,27 @@
 # Hearthside
 
+## 0.3.0-beta.4
+
+*(Français plus bas.)*
+
+### Hearthside Companion 0.3.0-beta
+- A new Companion is out: https://github.com/olirakith/hearthside-companion/releases/latest
+- It puts WoW back on your two screens by itself after a graphics driver reset, at most twice per session, and adds a **Back to two screens** button.
+- From now on, this addon tells the Companion when a newer one exists: it shows a notice with a **Download** button. The Companion still never connects to the internet.
+- This one time, update the Companion by hand: quit it from the notification area, then run the new setup.
+
+---
+
+## 0.3.0-beta.4 (français)
+
+### Hearthside Companion 0.3.0-beta
+- Un nouveau Companion est sorti : https://github.com/olirakith/hearthside-companion/releases/latest
+- Il remet lui-même WoW sur vos deux écrans après un plantage du pilote graphique, deux fois au plus par session, et ajoute un bouton **Revenir sur deux écrans**.
+- Désormais, cet addon prévient le Companion quand une version plus récente existe : il affiche un avis avec un bouton **Télécharger**. Le Companion ne se connecte toujours jamais à Internet.
+- Pour cette fois, mettez le Companion à jour à la main : quittez-le depuis la zone de notification, puis lancez le nouvel installateur.
+
+---
+
 ## 0.3.0-beta.3
 
 *(Français plus bas.)*
